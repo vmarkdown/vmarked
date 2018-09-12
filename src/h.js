@@ -1,7 +1,12 @@
 function vnode(sel, data, children, text, elm) {
     var key = data === undefined ? undefined : data.key;
-    return { tag: sel, sel: sel, data: data, children: children,
-        text: text, elm: elm, key: key };
+    return {
+        tag: sel,
+        children: children,
+        key: key,
+        text: text,
+        data: data,
+    };
 }
 
 function primitive(s) {

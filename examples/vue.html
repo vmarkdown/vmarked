@@ -36,7 +36,11 @@
         <pre><code id="vnodes-container"></code></pre>
     </div>
 
-    <div id="app"></div>
+
+    <div class="preview-container">
+        <div id="app"></div>
+    </div>
+
 
 </div>
 
@@ -55,7 +59,33 @@
     new Vue({
         el: '#app',
         render(h) {
-            return h('div',{},vnodes);
+
+            // var el =  h('div',{
+            //     'class': {
+            //         foo: true,
+            //         bar: false
+            //     },
+            //     style: {
+            //         color: 'red',
+            //         fontSize: '14px'
+            //     },
+            //     attrs: {
+            //         id: 'foo'
+            //     },
+            //     props: {
+            //         myProp: 'bar'
+            //     }
+            //
+            // },'123');
+            //
+            // console.log(el);
+
+
+            var el = h('div',{},vnodes);
+            //
+            console.log(el);
+
+            return el
         }
     });
 

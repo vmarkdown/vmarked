@@ -249,8 +249,13 @@
 
     function vnode(sel, data, children, text, elm) {
         var key = data === undefined ? undefined : data.key;
-        return { tag: sel, sel: sel, data: data, children: children,
-            text: text, elm: elm, key: key };
+        return {
+            tag: sel,
+            children: children,
+            key: key,
+            text: text,
+            data: data,
+        };
     }
 
     function primitive(s) {
@@ -760,11 +765,18 @@
         //     + '</code></pre>\n';
 
         var h = this.options.h;
-        var langClassName = (!lang)?'':'.'+this.options.langPrefix + escape$1(lang, true);
+
+        var data = {
+            'class': {}
+        };
+
+        if (lang) {
+            var langClassName = this.options.langPrefix + escape$1(lang, true);
+            data['class'][langClassName] = true;
+        }
 
         return h('pre', {}, [
-            h('code'+langClassName, {
-            } , code)
+            h('code', data , code)
         ]);
 
     };
@@ -931,9 +943,12 @@
 
         var h = this.options.h;
         return h('a', {
-            props: {
+            attrs: {
                 href: escape$1(href),
                 title: title?title:undefined
+            },
+            props: {
+
             }
         }, text);
 
@@ -953,7 +968,7 @@
 
         var h = this.options.h;
         return h('img', {
-            props: {
+            attrs: {
                 src: href,
                 title: title?title:undefined,
                 alt: text?text:undefined,

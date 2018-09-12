@@ -32,11 +32,18 @@ Renderer.prototype.code = function(code, lang, escaped) {
     //     + '</code></pre>\n';
 
     var h = this.options.h;
-    var langClassName = (!lang)?'':'.'+this.options.langPrefix + escape(lang, true);
+
+    var data = {
+        'class': {}
+    };
+
+    if (lang) {
+        var langClassName = this.options.langPrefix + escape(lang, true);
+        data['class'][langClassName] = true;
+    }
 
     return h('pre', {}, [
-        h('code'+langClassName, {
-        } , code)
+        h('code', data , code)
     ]);
 
 };
@@ -204,9 +211,12 @@ Renderer.prototype.link = function(href, title, text) {
 
     var h = this.options.h;
     return h('a', {
-        props: {
+        attrs: {
             href: escape(href),
             title: title?title:undefined
+        },
+        props: {
+
         }
     }, text);
 
@@ -226,7 +236,7 @@ Renderer.prototype.image = function(href, title, text) {
 
     var h = this.options.h;
     return h('img', {
-        props: {
+        attrs: {
             src: href,
             title: title?title:undefined,
             alt: text?text:undefined,
