@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vmarked</title>
+    <script src="//cdn.bootcss.com/marked/0.4.0/marked.js"></script>
+    <script src="../dist/vmarked.js"></script>
+</head>
+<body>
+
+<div id="app"></div>
+
+<hr>
+
+<div style="display: none;" class="markdown" id="markdown">
+# h1 Heading 8-)
+## h2 Heading
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading
+</div>
+
+
+<script>
+    const markdownHTML = document.getElementById('markdown').innerHTML;
+
+    var vnodes = vmarked(markdownHTML);
+
+    console.log(vnodes);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vmarked</title>
+    <script src="//cdn.bootcss.com/marked/0.4.0/marked.js"></script>
+    <script src="//cdn.bootcss.com/preact/8.2.9/preact.js"></script>
+    <script src="../vmarked.js"></script>
+</head>
+<body>
+
+<div id="app"></div>
+
+<hr>
+
+<div style="display: none;" class="markdown" id="markdown">
+# h1 Heading 8-)
+## h2 Heading
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading
+</div>
+
+
+
+<script>
+    const markdownHTML = document.getElementById('markdown').innerHTML;
+
+    const { Component, h, render } = preact;
+
+    marked.setOptions({
+        h: h
+    });
+
+    var vnodes = marked(markdownHTML);
+
+    console.log(vnodes);
+
+    class Markdown extends Component {
+        constructor() {
+            super();
+            this.state = {
+                tokens: []
+            };
+        }
+
+        componentDidMount() {
+            // this.setState({ tokens: tokens });
+        }
+
+        render() {
+            return h('div', {
+                className: 'markdown'
+            }, vnodes);
+        }
+    }
+
+    render(
+        h(Markdown, {}, null),
+        document.getElementById('app')
+    );
+
+</script>
+
+</body>
+</html>
