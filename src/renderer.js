@@ -49,7 +49,10 @@ Renderer.prototype.code = function(code, lang, escaped) {
 };
 
 Renderer.prototype.blockquote = function(quote) {
-    return '<blockquote>\n' + quote + '</blockquote>\n';
+    // return '<blockquote>\n' + quote + '</blockquote>\n';
+
+    var h = this.options.h;
+    return h('blockquote', {}, quote);
 };
 
 Renderer.prototype.html = function(html) {
@@ -100,65 +103,124 @@ Renderer.prototype.list = function(body, ordered, start) {
 
 };
 
-Renderer.prototype.listitem = function(text) {
-    // return '<li>' + text + '</li>\n';
+// Renderer.prototype.listitem = function(text) {
+//     // return '<li>' + text + '</li>\n';
+//     var h = this.options.h;
+//
+//     // debugger
+//     // if(Object.prototype.toString.call(text) === "[object Array]"){
+//     //     text = text[0]
+//     // }
+//
+//     return h('li', {
+//     }, text);
+//
+//
+// };
+
+Renderer.prototype.listitem = function(vnodes) {
+
     var h = this.options.h;
-
-    // debugger
-    // if(Object.prototype.toString.call(text) === "[object Array]"){
-    //     text = text[0]
-    // }
-
     return h('li', {
-    }, text);
-
-
+    }, vnodes);
 };
 
 Renderer.prototype.checkbox = function(checked) {
-    return '<input '
-        + (checked ? 'checked="" ' : '')
-        + 'disabled="" type="checkbox"'
-        + (this.options.xhtml ? ' /' : '')
-        + '> ';
+    // return '<input '
+    //     + (checked ? 'checked="" ' : '')
+    //     + 'disabled="" type="checkbox"'
+    //     + (this.options.xhtml ? ' /' : '')
+    //     + '> ';
+
+
+
+
+    var h = this.options.h;
+
+    return h('input', {
+        attrs: {
+            checked: checked,
+            disabled: true,
+            type: 'checkbox'
+        }
+    });
+
 }
 
-Renderer.prototype.paragraph = function(text) {
+// Renderer.prototype.paragraph = function(text) {
+//     // return '<p>' + text + '</p>\n';
+//     var h = this.options.h;
+//     return h('p', {}, text);
+// };
+
+Renderer.prototype.paragraph = function(vnodes) {
     // return '<p>' + text + '</p>\n';
+    // var h = this.options.h;
+    // return h('p', {}, text);
+
+    // debugger
+    // return vnodes;
     var h = this.options.h;
-    return h('p', {}, text);
+    return h('p', {}, vnodes);
 };
 
 Renderer.prototype.table = function(header, body) {
-    if (body) body = '<tbody>' + body + '</tbody>';
+    // if (body) body = '<tbody>' + body + '</tbody>';
+    //
+    // return '<table>\n'
+    //     + '<thead>\n'
+    //     + header
+    //     + '</thead>\n'
+    //     + body
+    //     + '</table>\n';
 
-    return '<table>\n'
-        + '<thead>\n'
-        + header
-        + '</thead>\n'
-        + body
-        + '</table>\n';
+    var h = this.options.h;
+    // if (body) body = h('tbody',{}, body);
+
+    return h('table', {}, [
+        h('thead', {}, header),
+        h('tbody',{}, body)
+    ]);
+
 };
 
 Renderer.prototype.tablerow = function(content) {
-    return '<tr>\n' + content + '</tr>\n';
+    // return '<tr>\n' + content + '</tr>\n';
+
+    var h = this.options.h;
+    return h('tr', {}, content);
 };
 
 Renderer.prototype.tablecell = function(content, flags) {
+    // var type = flags.header ? 'th' : 'td';
+    // var tag = flags.align
+    //     ? '<' + type + ' align="' + flags.align + '">'
+    //     : '<' + type + '>';
+    // return tag + content + '</' + type + '>\n';
+
+    var h = this.options.h;
     var type = flags.header ? 'th' : 'td';
-    var tag = flags.align
-        ? '<' + type + ' align="' + flags.align + '">'
-        : '<' + type + '>';
-    return tag + content + '</' + type + '>\n';
+    return h(type, {
+        attrs:{
+            align: flags.align
+        }
+    }, content);
 };
 
 // span level renderer
 Renderer.prototype.strong = function(text) {
-    return '<strong>' + text + '</strong>';
+    // return '<strong>' + text + '</strong>';
+
+    var h = this.options.h;
+    return h('strong', {}, text);
+
 };
 
 Renderer.prototype.em = function(text) {
-    return '<em>' + text + '</em>';
+    // return '<em>' + text + '</em>';
+
+    var h = this.options.h;
+    return h('em', {}, text);
 };
 
 Renderer.prototype.codespan = function(text) {

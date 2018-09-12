@@ -76,6 +76,8 @@ Lexer.prototype.token = function(src, top) {
         ischecked;
 
     while (src) {
+        // debugger
+
         // newline
         if (cap = this.rules.newline.exec(src)) {
             src = src.substring(cap[0].length);

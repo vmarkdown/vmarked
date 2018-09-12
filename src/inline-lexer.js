@@ -58,10 +58,18 @@ InlineLexer.prototype.output = function(src) {
     var vnodes = [];
 
     while (src) {
+
         // escape
         if (cap = this.rules.escape.exec(src)) {
+            // src = src.substring(cap[0].length);
+            // out += cap[1];
+            // continue;
+
+
             src = src.substring(cap[0].length);
-            out += cap[1];
+            vnodes.push(
+                this.renderer.text(cap[1])
+            );
             continue;
         }
 
@@ -110,23 +118,44 @@ InlineLexer.prototype.output = function(src) {
                     href = text;
                 }
             }
-            out += this.renderer.link(href, null, text);
+            // out += this.renderer.link(href, null, text);
+
+            vnodes.push(
+                this.renderer.link(href, null, text)
+            );
+
             continue;
         }
 
         // tag
         if (cap = this.rules.tag.exec(src)) {
+            // if (!this.inLink && /^<a /i.test(cap[0])) {
+            //     this.inLink = true;
+            // } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
+            //     this.inLink = false;
+            // }
+            // src = src.substring(cap[0].length);
+            // out += this.options.sanitize
+            //     ? this.options.sanitizer
+            //         ? this.options.sanitizer(cap[0])
+            //         : escape(cap[0])
+            //     : cap[0]
+            // continue;
+
+
             if (!this.inLink && /^<a /i.test(cap[0])) {
                 this.inLink = true;
             } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
                 this.inLink = false;
             }
             src = src.substring(cap[0].length);
-            out += this.options.sanitize
-                ? this.options.sanitizer
+            vnodes.push(
+                this.options.sanitize
+                    ? this.options.sanitizer
                     ? this.options.sanitizer(cap[0])
                     : escape(cap[0])
-                : cap[0]
+                    : cap[0]
+            );
             continue;
         }
 
@@ -166,31 +195,64 @@ InlineLexer.prototype.output = function(src) {
         // reflink, nolink
         if ((cap = this.rules.reflink.exec(src))
             || (cap = this.rules.nolink.exec(src))) {
+            // src = src.substring(cap[0].length);
+            // link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
+            // link = this.links[link.toLowerCase()];
+            // if (!link || !link.href) {
+            //     out += cap[0].charAt(0);
+            //     src = cap[0].substring(1) + src;
+            //     continue;
+            // }
+            // this.inLink = true;
+            // out += this.outputLink(cap, link);
+            // this.inLink = false;
+            // continue;
+
             src = src.substring(cap[0].length);
             link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
             link = this.links[link.toLowerCase()];
             if (!link || !link.href) {
-                out += cap[0].charAt(0);
+                // out += cap[0].charAt(0);
+                vnodes.push(
+                    this.renderer.text(cap[0].charAt(0))
+                );
+
                 src = cap[0].substring(1) + src;
                 continue;
             }
             this.inLink = true;
-            out += this.outputLink(cap, link);
+            vnodes.push(
+                this.outputLink(cap, link)
+            );
             this.inLink = false;
             continue;
+
         }
 
         // strong
         if (cap = this.rules.strong.exec(src)) {
+            // src = src.substring(cap[0].length);
+            // out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
+            // continue;
+
             src = src.substring(cap[0].length);
-            out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
+            var vnode = this.output(cap[4] || cap[3] || cap[2] || cap[1]);
+            vnodes.push(
+                this.renderer.strong(vnode)
+            );
             continue;
         }
 
         // em
         if (cap = this.rules.em.exec(src)) {
+            // src = src.substring(cap[0].length);
+            // out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
+            // continue;
+
             src = src.substring(cap[0].length);
-            out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
+            vnodes.push(
+                this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]))
+            );
             continue;
         }
 
@@ -209,15 +271,28 @@ InlineLexer.prototype.output = function(src) {
 
         // br
         if (cap = this.rules.br.exec(src)) {
+            // src = src.substring(cap[0].length);
+            // out += this.renderer.br();
+            // continue;
+
             src = src.substring(cap[0].length);
-            out += this.renderer.br();
+            vnodes.push(
+                this.renderer.br()
+            );
             continue;
         }
 
         // del (gfm)
         if (cap = this.rules.del.exec(src)) {
+            // src = src.substring(cap[0].length);
+            // out += this.renderer.del(this.output(cap[1]));
+            // continue;
+
+
             src = src.substring(cap[0].length);
-            out += this.renderer.del(this.output(cap[1]));
+            vnodes.push(
+                this.renderer.del(this.output(cap[1]))
+            );
             continue;
         }
 
@@ -237,6 +312,9 @@ InlineLexer.prototype.output = function(src) {
     }
 
     // return out;
+    // return (vnodes && vnodes.length>0)?vnodes[0]:{
+    //     text: ''
+    // };
     return vnodes;
 };
 
