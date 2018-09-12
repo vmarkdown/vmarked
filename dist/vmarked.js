@@ -47,29 +47,6 @@
         };
     }
 
-    function resolveUrl(base, href) {
-        if (!baseUrls[' ' + base]) {
-            // we can ignore everything in base after the last slash of its path component,
-            // but we might need to add _that_
-            // https://tools.ietf.org/html/rfc3986#section-3
-            if (/^[^:]+:\/*[^/]*$/.test(base)) {
-                baseUrls[' ' + base] = base + '/';
-            } else {
-                baseUrls[' ' + base] = rtrim(base, '/', true);
-            }
-        }
-        base = baseUrls[' ' + base];
-
-        if (href.slice(0, 2) === '//') {
-            return base.replace(/:[\s\S]*/, ':') + href;
-        } else if (href.charAt(0) === '/') {
-            return base.replace(/(:\/*[^/]*)[\s\S]*/, '$1') + href;
-        } else {
-            return base + href;
-        }
-    }
-    var baseUrls = {};
-
     function noop() {}
     noop.exec = noop;
 
@@ -272,7 +249,7 @@
 
     function vnode(sel, data, children, text, elm) {
         var key = data === undefined ? undefined : data.key;
-        return { sel: sel, data: data, children: children,
+        return { tag: sel, sel: sel, data: data, children: children,
             text: text, elm: elm, key: key };
     }
 
@@ -281,7 +258,8 @@
     }
 
     var is = {
-        primitive: primitive
+        primitive: primitive,
+        array: Array.isArray
     };
 
     function addNS(data, children, sel) {
@@ -760,26 +738,35 @@
     }
 
     Renderer$1.prototype.code = function(code, lang, escaped) {
-        if (this.options.highlight) {
-            var out = this.options.highlight(code, lang);
-            if (out != null && out !== code) {
-                escaped = true;
-                code = out;
-            }
-        }
+        // if (this.options.highlight) {
+        //     var out = this.options.highlight(code, lang);
+        //     if (out != null && out !== code) {
+        //         escaped = true;
+        //         code = out;
+        //     }
+        // }
+        //
+        // if (!lang) {
+        //     return '<pre><code>'
+        //         + (escaped ? code : escape(code, true))
+        //         + '</code></pre>';
+        // }
+        //
+        // return '<pre><code class="'
+        //     + this.options.langPrefix
+        //     + escape(lang, true)
+        //     + '">'
+        //     + (escaped ? code : escape(code, true))
+        //     + '</code></pre>\n';
 
-        if (!lang) {
-            return '<pre><code>'
-                + (escaped ? code : escape$1(code, true))
-                + '</code></pre>';
-        }
+        var h = this.options.h;
+        var langClassName = (!lang)?'':'.'+this.options.langPrefix + escape$1(lang, true);
 
-        return '<pre><code class="'
-            + this.options.langPrefix
-            + escape$1(lang, true)
-            + '">'
-            + (escaped ? code : escape$1(code, true))
-            + '</code></pre>\n';
+        return h('pre', {}, [
+            h('code'+langClassName, {
+            } , code)
+        ]);
+
     };
 
     Renderer$1.prototype.blockquote = function(quote) {
@@ -811,17 +798,41 @@
     };
 
     Renderer$1.prototype.hr = function() {
-        return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
+        // return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
+        var h = this.options.h;
+        return h('hr', {});
     };
 
     Renderer$1.prototype.list = function(body, ordered, start) {
-        var type = ordered ? 'ol' : 'ul',
-            startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
-        return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
+        // var type = ordered ? 'ol' : 'ul',
+        //     startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
+        // return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
+
+
+        var h = this.options.h;
+
+        var type = ordered ? 'ol' : 'ul';
+
+
+        return h(type, {
+
+        }, body);
+
     };
 
     Renderer$1.prototype.listitem = function(text) {
-        return '<li>' + text + '</li>\n';
+        // return '<li>' + text + '</li>\n';
+        var h = this.options.h;
+
+        // debugger
+        // if(Object.prototype.toString.call(text) === "[object Array]"){
+        //     text = text[0]
+        // }
+
+        return h('li', {
+        }, text);
+
+
     };
 
     Renderer$1.prototype.checkbox = function(checked) {
@@ -833,7 +844,9 @@
     };
 
     Renderer$1.prototype.paragraph = function(text) {
-        return '<p>' + text + '</p>\n';
+        // return '<p>' + text + '</p>\n';
+        var h = this.options.h;
+        return h('p', {}, text);
     };
 
     Renderer$1.prototype.table = function(header, body) {
@@ -869,60 +882,89 @@
     };
 
     Renderer$1.prototype.codespan = function(text) {
-        return '<code>' + text + '</code>';
+        // return '<code>' + text + '</code>';
+        var h = this.options.h;
+        return h('code', {}, text);
     };
 
     Renderer$1.prototype.br = function() {
-        return this.options.xhtml ? '<br/>' : '<br>';
+        // return this.options.xhtml ? '<br/>' : '<br>';
+        var h = this.options.h;
+        return h('br');
     };
 
     Renderer$1.prototype.del = function(text) {
-        return '<del>' + text + '</del>';
+        // return '<del>' + text + '</del>';
+
+        var h = this.options.h;
+        return h('del', {}, text);
+
     };
 
     Renderer$1.prototype.link = function(href, title, text) {
-        if (this.options.sanitize) {
-            try {
-                var prot = decodeURIComponent(unescape(href))
-                    .replace(/[^\w:]/g, '')
-                    .toLowerCase();
-            } catch (e) {
-                return text;
+        // if (this.options.sanitize) {
+        //     try {
+        //         var prot = decodeURIComponent(unescape(href))
+        //             .replace(/[^\w:]/g, '')
+        //             .toLowerCase();
+        //     } catch (e) {
+        //         return text;
+        //     }
+        //     if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
+        //         return text;
+        //     }
+        // }
+        // if (this.options.baseUrl && !originIndependentUrl.test(href)) {
+        //     href = resolveUrl(this.options.baseUrl, href);
+        // }
+        // try {
+        //     href = encodeURI(href).replace(/%25/g, '%');
+        // } catch (e) {
+        //     return text;
+        // }
+        // var out = '<a href="' + escape(href) + '"';
+        // if (title) {
+        //     out += ' title="' + title + '"';
+        // }
+        // out += '>' + text + '</a>';
+        // return out;
+
+        var h = this.options.h;
+        return h('a', {
+            props: {
+                href: escape$1(href),
+                title: title?title:undefined
             }
-            if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
-                return text;
-            }
-        }
-        if (this.options.baseUrl && !originIndependentUrl.test(href)) {
-            href = resolveUrl(this.options.baseUrl, href);
-        }
-        try {
-            href = encodeURI(href).replace(/%25/g, '%');
-        } catch (e) {
-            return text;
-        }
-        var out = '<a href="' + escape$1(href) + '"';
-        if (title) {
-            out += ' title="' + title + '"';
-        }
-        out += '>' + text + '</a>';
-        return out;
+        }, text);
+
+        // return h('a', {props: {href: '/foo'}}, 'I\'ll take you places!')
     };
 
     Renderer$1.prototype.image = function(href, title, text) {
-        if (this.options.baseUrl && !originIndependentUrl.test(href)) {
-            href = resolveUrl(this.options.baseUrl, href);
-        }
-        var out = '<img src="' + href + '" alt="' + text + '"';
-        if (title) {
-            out += ' title="' + title + '"';
-        }
-        out += this.options.xhtml ? '/>' : '>';
-        return out;
+        // if (this.options.baseUrl && !originIndependentUrl.test(href)) {
+        //     href = resolveUrl(this.options.baseUrl, href);
+        // }
+        // var out = '<img src="' + href + '" alt="' + text + '"';
+        // if (title) {
+        //     out += ' title="' + title + '"';
+        // }
+        // out += this.options.xhtml ? '/>' : '>';
+        // return out;
+
+        var h = this.options.h;
+        return h('img', {
+            props: {
+                src: href,
+                title: title?title:undefined,
+                alt: text?text:undefined,
+            }
+        }, text);
     };
 
     Renderer$1.prototype.text = function(text) {
-        return text;
+        // return text;
+        var h = this.options.h;
+        return h('span', {}, text);
     };
 
     /**
@@ -1081,6 +1123,8 @@
             cap,
             prevCapZero;
 
+        var vnodes = [];
+
         while (src) {
             // escape
             if (cap = this.rules.escape.exec(src)) {
@@ -1091,6 +1135,17 @@
 
             // autolink
             if (cap = this.rules.autolink.exec(src)) {
+                // src = src.substring(cap[0].length);
+                // if (cap[2] === '@') {
+                //     text = escape(this.mangle(cap[1]));
+                //     href = 'mailto:' + text;
+                // } else {
+                //     text = escape(cap[1]);
+                //     href = text;
+                // }
+                // out += this.renderer.link(href, null, text);
+                // continue;
+
                 src = src.substring(cap[0].length);
                 if (cap[2] === '@') {
                     text = escape$1(this.mangle(cap[1]));
@@ -1099,7 +1154,9 @@
                     text = escape$1(cap[1]);
                     href = text;
                 }
-                out += this.renderer.link(href, null, text);
+                vnodes.push(
+                    this.renderer.link(href, null, text)
+                );
                 continue;
             }
 
@@ -1159,10 +1216,17 @@
                     title = cap[3] ? cap[3].slice(1, -1) : '';
                 }
                 href = href.trim().replace(/^<([\s\S]*)>$/, '$1');
-                out += this.outputLink(cap, {
-                    href: InlineLexer.escapes(href),
-                    title: InlineLexer.escapes(title)
-                });
+                // out += this.outputLink(cap, {
+                //     href: InlineLexer.escapes(href),
+                //     title: InlineLexer.escapes(title)
+                // });
+                vnodes.push(
+                    this.outputLink(cap, {
+                        href: InlineLexer.escapes(href),
+                        title: InlineLexer.escapes(title)
+                    })
+                );
+
                 this.inLink = false;
                 continue;
             }
@@ -1200,8 +1264,14 @@
 
             // code
             if (cap = this.rules.code.exec(src)) {
+                // src = src.substring(cap[0].length);
+                // out += this.renderer.codespan(escape(cap[2].trim(), true));
+                // continue;
+
                 src = src.substring(cap[0].length);
-                out += this.renderer.codespan(escape$1(cap[2].trim(), true));
+                vnodes.push(
+                    this.renderer.codespan(cap[2].trim(), true)
+                );
                 continue;
             }
 
@@ -1222,7 +1292,10 @@
             // text
             if (cap = this.rules.text.exec(src)) {
                 src = src.substring(cap[0].length);
-                out += this.renderer.text(escape$1(this.smartypants(cap[0])));
+                // out += this.renderer.text(escape(this.smartypants(cap[0])));
+                vnodes.push(
+                    this.renderer.text(this.smartypants(cap[0]))
+                );
                 continue;
             }
 
@@ -1231,7 +1304,8 @@
             }
         }
 
-        return out;
+        // return out;
+        return vnodes;
     };
 
     InlineLexer.escapes = function(text) {
@@ -1393,7 +1467,16 @@
             body += '\n' + this.next().text;
         }
 
-        return this.inline.output(body);
+        // return this.inline.output(body);
+
+        const vnodes = this.inline.output(body);
+
+        return vnodes.map(function (vnode) {
+            return vnode.text
+        }).reduce(function (a, b) {
+            return a + b;
+        });
+
     };
 
     /**
@@ -1462,18 +1545,44 @@
                 return this.renderer.blockquote(body);
             }
             case 'list_start': {
-                body = '';
+                // body = '';
+                // var ordered = this.token.ordered,
+                //     start = this.token.start;
+                //
+                // while (this.next().type !== 'list_end') {
+                //     body += this.tok();
+                // }
+                //
+                // return this.renderer.list(body, ordered, start);
+
+                let body = [];
                 var ordered = this.token.ordered,
                     start = this.token.start;
 
                 while (this.next().type !== 'list_end') {
-                    body += this.tok();
+                    body.push(this.tok());
                 }
 
                 return this.renderer.list(body, ordered, start);
+
             }
             case 'list_item_start': {
-                body = '';
+                // body = '';
+                // var loose = this.token.loose;
+                //
+                // if (this.token.task) {
+                //     body += this.renderer.checkbox(this.token.checked);
+                // }
+                //
+                // while (this.next().type !== 'list_item_end') {
+                //     body += !loose && this.token.type === 'text'
+                //         ? this.parseText()
+                //         : this.tok();
+                // }
+                //
+                // return this.renderer.listitem(body);
+
+                let body = [];
                 var loose = this.token.loose;
 
                 if (this.token.task) {
@@ -1481,9 +1590,11 @@
                 }
 
                 while (this.next().type !== 'list_item_end') {
-                    body += !loose && this.token.type === 'text'
+                    body.push(
+                        !loose && this.token.type === 'text'
                         ? this.parseText()
-                        : this.tok();
+                        : this.tok()
+                    );
                 }
 
                 return this.renderer.listitem(body);
@@ -1498,11 +1609,6 @@
             case 'text': {
                 return this.renderer.paragraph(this.parseText());
             }
-            // =======================================
-            case 'linenumber': {
-                return this.renderer.linenumber(this.token.text);
-            }
-            // =======================================
         }
     };
 

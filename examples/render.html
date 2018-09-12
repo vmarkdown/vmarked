@@ -3,33 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <title>vmarked</title>
+    <link rel="stylesheet" href="//cdn.bootcss.com/github-markdown-css/2.10.0/github-markdown.min.css">
+
     <script src="../dist/vmarked.js"></script>
+    <script src="//cdn.bootcss.com/snabbdom/0.7.1/snabbdom.js"></script>
+    <script src="//cdn.bootcss.com/snabbdom/0.7.1/h.js"></script>
+    <script src="//cdn.bootcss.com/snabbdom/0.7.1/snabbdom-props.js"></script>
+    <script src="//cdn.bootcss.com/snabbdom/0.7.1/snabbdom-class.js"></script>
 
+    <style>
 
+        .markdown-container{
+            width: 600px;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
 
+        #markdown-text {
+            margin-top: 30px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+    </style>
 </head>
 <body>
 
-<div id="app"></div>
 
-<hr>
 
-<div style="display: none;" class="markdown" id="markdown">
-# h1 Heading 8-)
-## h2 Heading
-### h3 Heading
-#### h4 Heading
-##### h5 Heading
-###### h6 Heading
+<div class="markdown-container">
+    <textarea name="" id="markdown-text" cols="30" rows="10">
+
+    </textarea>
+
+
+    <div class="vnodes-container">
+        <pre><code id="vnodes-container"></code></pre>
+    </div>
+
+    <div id="app"></div>
+
 </div>
 
 
+
+
 <script>
-    const markdownHTML = document.getElementById('markdown').innerHTML;
+    // const { h } = snabbdom;
+    const h = window.h.default;
 
-    var vnodes = vmarked(markdownHTML);
+    vmarked.setOptions({
+        h: h
+    });
 
-    console.log(vnodes);
+    const patch = snabbdom.init([
+        snabbdom_props.default,
+        snabbdom_class.default,
+    ]);
+
+    const container = document.getElementById('app');
+    const markdownTextContainer = document.getElementById('markdown-text');
+    const vnodesContainer = document.getElementById('vnodes-container');
+
+    // patch(container, h('a', {props: {href: '/foo'}}, 'I\'ll take you places!'));
+
+    (async () => {
+
+        let oldVnode = container;
+        let newVnode = null;
+        function render() {
+            const vnodes = vmarked(markdownTextContainer.value);
+            // vnodesContainer.innerHTML = JSON.stringify(vnodes, null, 4);
+            newVnode = h('div.markdown-body', {}, vnodes);
+            patch(oldVnode, newVnode);
+            oldVnode = newVnode;
+        }
+
+        render();
+
+        markdownTextContainer.addEventListener('keyup', function () {
+            render();
+        });
+
+    })();
+
+
+
 
 </script>
 

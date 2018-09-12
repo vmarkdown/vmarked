@@ -76,36 +76,13 @@ Renderer.prototype.hr = function() {
 };
 
 Renderer.prototype.list = function(body, ordered, start) {
-    // var type = ordered ? 'ol' : 'ul',
-    //     startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
-    // return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
-
-
-    var h = this.options.h;
-
     var type = ordered ? 'ol' : 'ul',
         startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
-
-
-    return h(type, {
-
-    }, body);
-
+    return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
 };
 
 Renderer.prototype.listitem = function(text) {
-    // return '<li>' + text + '</li>\n';
-    var h = this.options.h;
-
-    // debugger
-    // if(Object.prototype.toString.call(text) === "[object Array]"){
-    //     text = text[0]
-    // }
-
-    return h('li', {
-    }, text);
-
-
+    return '<li>' + text + '</li>\n';
 };
 
 Renderer.prototype.checkbox = function(checked) {
@@ -155,9 +132,9 @@ Renderer.prototype.em = function(text) {
 };
 
 Renderer.prototype.codespan = function(text) {
-    // return '<code>' + text + '</code>';
-    var h = this.options.h;
-    return h('code', {}, text);
+    return '<code>' + text + '</code>';
+    // var h = this.options.h;
+    // return h('code', {}, text);
 };
 
 Renderer.prototype.br = function() {

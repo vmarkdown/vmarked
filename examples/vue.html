@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vmarked</title>
+    <link rel="stylesheet" href="//cdn.bootcss.com/github-markdown-css/2.10.0/github-markdown.min.css">
+
+    <script src="//cdn.bootcss.com/vue/2.5.16/vue.js"></script>
+    <script src="../dist/vmarked.js"></script>
+
+    <style>
+        .markdown-container{
+            width: 600px;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+
+        #markdown-text {
+            margin-top: 30px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+
+
+<div class="markdown-container">
+    <textarea name="" id="markdown-text" cols="30" rows="10">
+[I'm an inline-style link](https://www.google.com)
+    </textarea>
+
+
+    <div class="vnodes-container">
+        <pre><code id="vnodes-container"></code></pre>
+    </div>
+
+    <div id="app"></div>
+
+</div>
+
+
+
+
+<script>
+    // const { h } = snabbdom;
+
+    // vmarked.setOptions({
+    //     h: h
+    // });
+
+    var vnodes = vmarked("[I'm an inline-style link](https://www.google.com)");
+
+    new Vue({
+        el: '#app',
+        render(h) {
+            return h('div',{},vnodes);
+        }
+    });
+
+
+
+</script>
+
+</body>
+</html>

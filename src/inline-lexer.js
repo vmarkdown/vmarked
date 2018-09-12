@@ -55,6 +55,8 @@ InlineLexer.prototype.output = function(src) {
         cap,
         prevCapZero;
 
+    var vnodes = [];
+
     while (src) {
         // escape
         if (cap = this.rules.escape.exec(src)) {
@@ -65,6 +67,17 @@ InlineLexer.prototype.output = function(src) {
 
         // autolink
         if (cap = this.rules.autolink.exec(src)) {
+            // src = src.substring(cap[0].length);
+            // if (cap[2] === '@') {
+            //     text = escape(this.mangle(cap[1]));
+            //     href = 'mailto:' + text;
+            // } else {
+            //     text = escape(cap[1]);
+            //     href = text;
+            // }
+            // out += this.renderer.link(href, null, text);
+            // continue;
+
             src = src.substring(cap[0].length);
             if (cap[2] === '@') {
                 text = escape(this.mangle(cap[1]));
@@ -73,7 +86,9 @@ InlineLexer.prototype.output = function(src) {
                 text = escape(cap[1]);
                 href = text;
             }
-            out += this.renderer.link(href, null, text);
+            vnodes.push(
+                this.renderer.link(href, null, text)
+            );
             continue;
         }
 
@@ -133,10 +148,17 @@ InlineLexer.prototype.output = function(src) {
                 title = cap[3] ? cap[3].slice(1, -1) : '';
             }
             href = href.trim().replace(/^<([\s\S]*)>$/, '$1');
-            out += this.outputLink(cap, {
-                href: InlineLexer.escapes(href),
-                title: InlineLexer.escapes(title)
-            });
+            // out += this.outputLink(cap, {
+            //     href: InlineLexer.escapes(href),
+            //     title: InlineLexer.escapes(title)
+            // });
+            vnodes.push(
+                this.outputLink(cap, {
+                    href: InlineLexer.escapes(href),
+                    title: InlineLexer.escapes(title)
+                })
+            );
+
             this.inLink = false;
             continue;
         }
@@ -174,8 +196,14 @@ InlineLexer.prototype.output = function(src) {
 
         // code
         if (cap = this.rules.code.exec(src)) {
+            // src = src.substring(cap[0].length);
+            // out += this.renderer.codespan(escape(cap[2].trim(), true));
+            // continue;
+
             src = src.substring(cap[0].length);
-            out += this.renderer.codespan(escape(cap[2].trim(), true));
+            vnodes.push(
+                this.renderer.codespan(cap[2].trim(), true)
+            );
             continue;
         }
 
@@ -196,7 +224,10 @@ InlineLexer.prototype.output = function(src) {
         // text
         if (cap = this.rules.text.exec(src)) {
             src = src.substring(cap[0].length);
-            out += this.renderer.text(escape(this.smartypants(cap[0])));
+            // out += this.renderer.text(escape(this.smartypants(cap[0])));
+            vnodes.push(
+                this.renderer.text(this.smartypants(cap[0]))
+            );
             continue;
         }
 
@@ -205,7 +236,8 @@ InlineLexer.prototype.output = function(src) {
         }
     }
 
-    return out;
+    // return out;
+    return vnodes;
 };
 
 InlineLexer.escapes = function(text) {

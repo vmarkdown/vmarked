@@ -75,7 +75,16 @@ Parser.prototype.parseText = function() {
         body += '\n' + this.next().text;
     }
 
-    return this.inline.output(body);
+    // return this.inline.output(body);
+
+    const vnodes = this.inline.output(body);
+
+    return vnodes.map(function (vnode) {
+        return vnode.text
+    }).reduce(function (a, b) {
+        return a + b;
+    });
+
 };
 
 /**
@@ -144,18 +153,44 @@ Parser.prototype.tok = function() {
             return this.renderer.blockquote(body);
         }
         case 'list_start': {
-            body = '';
+            // body = '';
+            // var ordered = this.token.ordered,
+            //     start = this.token.start;
+            //
+            // while (this.next().type !== 'list_end') {
+            //     body += this.tok();
+            // }
+            //
+            // return this.renderer.list(body, ordered, start);
+
+            let body = [];
             var ordered = this.token.ordered,
                 start = this.token.start;
 
             while (this.next().type !== 'list_end') {
-                body += this.tok();
+                body.push(this.tok());
             }
 
             return this.renderer.list(body, ordered, start);
+
         }
         case 'list_item_start': {
-            body = '';
+            // body = '';
+            // var loose = this.token.loose;
+            //
+            // if (this.token.task) {
+            //     body += this.renderer.checkbox(this.token.checked);
+            // }
+            //
+            // while (this.next().type !== 'list_item_end') {
+            //     body += !loose && this.token.type === 'text'
+            //         ? this.parseText()
+            //         : this.tok();
+            // }
+            //
+            // return this.renderer.listitem(body);
+
+            let body = [];
             var loose = this.token.loose;
 
             if (this.token.task) {
@@ -163,9 +198,11 @@ Parser.prototype.tok = function() {
             }
 
             while (this.next().type !== 'list_item_end') {
-                body += !loose && this.token.type === 'text'
+                body.push(
+                    !loose && this.token.type === 'text'
                     ? this.parseText()
-                    : this.tok();
+                    : this.tok()
+                );
             }
 
             return this.renderer.listitem(body);
@@ -180,11 +217,6 @@ Parser.prototype.tok = function() {
         case 'text': {
             return this.renderer.paragraph(this.parseText());
         }
-        // =======================================
-        case 'linenumber': {
-            return this.renderer.linenumber(this.token.text);
-        }
-        // =======================================
     }
 };
 

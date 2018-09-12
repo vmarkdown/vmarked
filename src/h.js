@@ -1,6 +1,6 @@
 function vnode(sel, data, children, text, elm) {
     var key = data === undefined ? undefined : data.key;
-    return { sel: sel, data: data, children: children,
+    return { tag: sel, sel: sel, data: data, children: children,
         text: text, elm: elm, key: key };
 }
 
@@ -9,7 +9,8 @@ function primitive(s) {
 }
 
 var is = {
-    primitive: primitive
+    primitive: primitive,
+    array: Array.isArray
 };
 
 function addNS(data, children, sel) {
