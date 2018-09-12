@@ -56,6 +56,10 @@ Renderer.prototype.blockquote = function(quote) {
 };
 
 Renderer.prototype.html = function(html) {
+
+    // if(Vue){
+    //     return Vue.compile(html);
+    // }
     return html;
 };
 

@@ -17,20 +17,6 @@
             .replace(/'/g, '&#39;');
     }
 
-    function unescape(html) {
-        // explicitly match decimal, hex, and named HTML entities
-        return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig, function(_, n) {
-            n = n.toLowerCase();
-            if (n === 'colon') return ':';
-            if (n.charAt(0) === '#') {
-                return n.charAt(1) === 'x'
-                    ? String.fromCharCode(parseInt(n.substring(2), 16))
-                    : String.fromCharCode(+n.substring(1));
-            }
-            return '';
-        });
-    }
-
     function edit(regex, opt) {
         regex = regex.source || regex;
         opt = opt || '';
@@ -124,6 +110,11 @@
 
         return str.substr(0, str.length - suffLen);
     }
+
+
+    var isArray = Array.isArray || function (val) {
+        return !! val && '[object Array]' === Object.prototype.toString.call(val);
+    };
 
     /**
      * Block-Level Grammar
@@ -414,6 +405,8 @@
             ischecked;
 
         while (src) {
+            // debugger
+
             // newline
             if (cap = this.rules.newline.exec(src)) {
                 src = src.substring(cap[0].length);
@@ -782,10 +775,17 @@
     };
 
     Renderer$1.prototype.blockquote = function(quote) {
-        return '<blockquote>\n' + quote + '</blockquote>\n';
+        // return '<blockquote>\n' + quote + '</blockquote>\n';
+
+        var h = this.options.h;
+        return h('blockquote', {}, quote);
     };
 
     Renderer$1.prototype.html = function(html) {
+
+        // if(Vue){
+        //     return Vue.compile(html);
+        // }
         return html;
     };
 
@@ -832,65 +832,124 @@
 
     };
 
-    Renderer$1.prototype.listitem = function(text) {
-        // return '<li>' + text + '</li>\n';
+    // Renderer.prototype.listitem = function(text) {
+    //     // return '<li>' + text + '</li>\n';
+    //     var h = this.options.h;
+    //
+    //     // debugger
+    //     // if(Object.prototype.toString.call(text) === "[object Array]"){
+    //     //     text = text[0]
+    //     // }
+    //
+    //     return h('li', {
+    //     }, text);
+    //
+    //
+    // };
+
+    Renderer$1.prototype.listitem = function(vnodes) {
+
         var h = this.options.h;
-
-        // debugger
-        // if(Object.prototype.toString.call(text) === "[object Array]"){
-        //     text = text[0]
-        // }
-
         return h('li', {
-        }, text);
-
-
+        }, vnodes);
     };
 
     Renderer$1.prototype.checkbox = function(checked) {
-        return '<input '
-            + (checked ? 'checked="" ' : '')
-            + 'disabled="" type="checkbox"'
-            + (this.options.xhtml ? ' /' : '')
-            + '> ';
+        // return '<input '
+        //     + (checked ? 'checked="" ' : '')
+        //     + 'disabled="" type="checkbox"'
+        //     + (this.options.xhtml ? ' /' : '')
+        //     + '> ';
+
+
+
+
+        var h = this.options.h;
+
+        return h('input', {
+            attrs: {
+                checked: checked,
+                disabled: true,
+                type: 'checkbox'
+            }
+        });
+
     };
 
-    Renderer$1.prototype.paragraph = function(text) {
+    // Renderer.prototype.paragraph = function(text) {
+    //     // return '<p>' + text + '</p>\n';
+    //     var h = this.options.h;
+    //     return h('p', {}, text);
+    // };
+
+    Renderer$1.prototype.paragraph = function(vnodes) {
         // return '<p>' + text + '</p>\n';
+        // var h = this.options.h;
+        // return h('p', {}, text);
+
+        // debugger
+        // return vnodes;
         var h = this.options.h;
-        return h('p', {}, text);
+        return h('p', {}, vnodes);
     };
 
     Renderer$1.prototype.table = function(header, body) {
-        if (body) body = '<tbody>' + body + '</tbody>';
+        // if (body) body = '<tbody>' + body + '</tbody>';
+        //
+        // return '<table>\n'
+        //     + '<thead>\n'
+        //     + header
+        //     + '</thead>\n'
+        //     + body
+        //     + '</table>\n';
 
-        return '<table>\n'
-            + '<thead>\n'
-            + header
-            + '</thead>\n'
-            + body
-            + '</table>\n';
+        var h = this.options.h;
+        // if (body) body = h('tbody',{}, body);
+
+        return h('table', {}, [
+            h('thead', {}, header),
+            h('tbody',{}, body)
+        ]);
+
     };
 
     Renderer$1.prototype.tablerow = function(content) {
-        return '<tr>\n' + content + '</tr>\n';
+        // return '<tr>\n' + content + '</tr>\n';
+
+        var h = this.options.h;
+        return h('tr', {}, content);
     };
 
     Renderer$1.prototype.tablecell = function(content, flags) {
+        // var type = flags.header ? 'th' : 'td';
+        // var tag = flags.align
+        //     ? '<' + type + ' align="' + flags.align + '">'
+        //     : '<' + type + '>';
+        // return tag + content + '</' + type + '>\n';
+
+        var h = this.options.h;
         var type = flags.header ? 'th' : 'td';
-        var tag = flags.align
-            ? '<' + type + ' align="' + flags.align + '">'
-            : '<' + type + '>';
-        return tag + content + '</' + type + '>\n';
+        return h(type, {
+            attrs:{
+                align: flags.align
+            }
+        }, content);
     };
 
     // span level renderer
     Renderer$1.prototype.strong = function(text) {
-        return '<strong>' + text + '</strong>';
+        // return '<strong>' + text + '</strong>';
+
+        var h = this.options.h;
+        return h('strong', {}, text);
+
     };
 
     Renderer$1.prototype.em = function(text) {
-        return '<em>' + text + '</em>';
+        // return '<em>' + text + '</em>';
+
+        var h = this.options.h;
+        return h('em', {}, text);
     };
 
     Renderer$1.prototype.codespan = function(text) {
@@ -1130,8 +1189,7 @@
      */
 
     InlineLexer.prototype.output = function(src) {
-        var out = '',
-            link,
+        var link,
             text,
             href,
             title,
@@ -1141,10 +1199,18 @@
         var vnodes = [];
 
         while (src) {
+
             // escape
             if (cap = this.rules.escape.exec(src)) {
+                // src = src.substring(cap[0].length);
+                // out += cap[1];
+                // continue;
+
+
                 src = src.substring(cap[0].length);
-                out += cap[1];
+                vnodes.push(
+                    this.renderer.text(cap[1])
+                );
                 continue;
             }
 
@@ -1193,23 +1259,44 @@
                         href = text;
                     }
                 }
-                out += this.renderer.link(href, null, text);
+                // out += this.renderer.link(href, null, text);
+
+                vnodes.push(
+                    this.renderer.link(href, null, text)
+                );
+
                 continue;
             }
 
             // tag
             if (cap = this.rules.tag.exec(src)) {
+                // if (!this.inLink && /^<a /i.test(cap[0])) {
+                //     this.inLink = true;
+                // } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
+                //     this.inLink = false;
+                // }
+                // src = src.substring(cap[0].length);
+                // out += this.options.sanitize
+                //     ? this.options.sanitizer
+                //         ? this.options.sanitizer(cap[0])
+                //         : escape(cap[0])
+                //     : cap[0]
+                // continue;
+
+
                 if (!this.inLink && /^<a /i.test(cap[0])) {
                     this.inLink = true;
                 } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
                     this.inLink = false;
                 }
                 src = src.substring(cap[0].length);
-                out += this.options.sanitize
-                    ? this.options.sanitizer
+                vnodes.push(
+                    this.options.sanitize
+                        ? this.options.sanitizer
                         ? this.options.sanitizer(cap[0])
                         : escape$1(cap[0])
-                    : cap[0];
+                        : cap[0]
+                );
                 continue;
             }
 
@@ -1249,31 +1336,64 @@
             // reflink, nolink
             if ((cap = this.rules.reflink.exec(src))
                 || (cap = this.rules.nolink.exec(src))) {
+                // src = src.substring(cap[0].length);
+                // link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
+                // link = this.links[link.toLowerCase()];
+                // if (!link || !link.href) {
+                //     out += cap[0].charAt(0);
+                //     src = cap[0].substring(1) + src;
+                //     continue;
+                // }
+                // this.inLink = true;
+                // out += this.outputLink(cap, link);
+                // this.inLink = false;
+                // continue;
+
                 src = src.substring(cap[0].length);
                 link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
                 link = this.links[link.toLowerCase()];
                 if (!link || !link.href) {
-                    out += cap[0].charAt(0);
+                    // out += cap[0].charAt(0);
+                    vnodes.push(
+                        this.renderer.text(cap[0].charAt(0))
+                    );
+
                     src = cap[0].substring(1) + src;
                     continue;
                 }
                 this.inLink = true;
-                out += this.outputLink(cap, link);
+                vnodes.push(
+                    this.outputLink(cap, link)
+                );
                 this.inLink = false;
                 continue;
+
             }
 
             // strong
             if (cap = this.rules.strong.exec(src)) {
+                // src = src.substring(cap[0].length);
+                // out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
+                // continue;
+
                 src = src.substring(cap[0].length);
-                out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
+                var vnode = this.output(cap[4] || cap[3] || cap[2] || cap[1]);
+                vnodes.push(
+                    this.renderer.strong(vnode)
+                );
                 continue;
             }
 
             // em
             if (cap = this.rules.em.exec(src)) {
+                // src = src.substring(cap[0].length);
+                // out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
+                // continue;
+
                 src = src.substring(cap[0].length);
-                out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
+                vnodes.push(
+                    this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]))
+                );
                 continue;
             }
 
@@ -1292,15 +1412,28 @@
 
             // br
             if (cap = this.rules.br.exec(src)) {
+                // src = src.substring(cap[0].length);
+                // out += this.renderer.br();
+                // continue;
+
                 src = src.substring(cap[0].length);
-                out += this.renderer.br();
+                vnodes.push(
+                    this.renderer.br()
+                );
                 continue;
             }
 
             // del (gfm)
             if (cap = this.rules.del.exec(src)) {
+                // src = src.substring(cap[0].length);
+                // out += this.renderer.del(this.output(cap[1]));
+                // continue;
+
+
                 src = src.substring(cap[0].length);
-                out += this.renderer.del(this.output(cap[1]));
+                vnodes.push(
+                    this.renderer.del(this.output(cap[1]))
+                );
                 continue;
             }
 
@@ -1320,6 +1453,9 @@
         }
 
         // return out;
+        // return (vnodes && vnodes.length>0)?vnodes[0]:{
+        //     text: ''
+        // };
         return vnodes;
     };
 
@@ -1484,14 +1620,15 @@
 
         // return this.inline.output(body);
 
-        const vnodes = this.inline.output(body);
+        // const vnode = this.inline.output(body);
+        // return vnode.text;
+        // return vnodes.map(function (vnode) {
+        //     return vnode.text
+        // }).reduce(function (a, b) {
+        //     return a + b;
+        // });
 
-        return vnodes.map(function (vnode) {
-            return vnode.text
-        }).reduce(function (a, b) {
-            return a + b;
-        });
-
+        return this.inline.output(body);
     };
 
     /**
@@ -1507,10 +1644,21 @@
                 return this.renderer.hr();
             }
             case 'heading': {
+                // return this.renderer.heading(
+                //     this.inline.output(this.token.text),
+                //     this.token.depth,
+                //     unescape(this.inlineText.output(this.token.text)));
+
+                // var vnode = this.inline.output(this.token.text);
+                // return this.renderer.heading(
+                //     vnode.text,
+                //     this.token.depth,
+                //     unescape(this.inlineText.output(this.token.text)));
+
                 return this.renderer.heading(
                     this.inline.output(this.token.text),
                     this.token.depth,
-                    unescape(this.inlineText.output(this.token.text)));
+                    (this.inlineText.output(this.token.text)));
             }
             case 'code': {
                 return this.renderer.code(this.token.text,
@@ -1518,46 +1666,94 @@
                     this.token.escaped);
             }
             case 'table': {
-                var header = '',
-                    body = '',
+                // var header = '',
+                //     body = '',
+                //     i,
+                //     row,
+                //     cell,
+                //     j;
+                //
+                // // header
+                // cell = '';
+                // for (i = 0; i < this.token.header.length; i++) {
+                //     cell += this.renderer.tablecell(
+                //         this.inline.output(this.token.header[i]),
+                //         { header: true, align: this.token.align[i] }
+                //     );
+                // }
+                // header += this.renderer.tablerow(cell);
+                //
+                // for (i = 0; i < this.token.cells.length; i++) {
+                //     row = this.token.cells[i];
+                //
+                //     cell = '';
+                //     for (j = 0; j < row.length; j++) {
+                //         cell += this.renderer.tablecell(
+                //             this.inline.output(row[j]),
+                //             { header: false, align: this.token.align[j] }
+                //         );
+                //     }
+                //
+                //     body += this.renderer.tablerow(cell);
+                // }
+                // return this.renderer.table(header, body);
+
+                var header = [],
+                    body = [],
                     i,
                     row,
-                    cell,
+                    cell = [],
                     j;
 
                 // header
-                cell = '';
+                // cell = '';
                 for (i = 0; i < this.token.header.length; i++) {
-                    cell += this.renderer.tablecell(
-                        this.inline.output(this.token.header[i]),
-                        { header: true, align: this.token.align[i] }
+                    cell.push(
+                        this.renderer.tablecell(
+                            this.inline.output(this.token.header[i]),
+                            { header: true, align: this.token.align[i] }
+                        )
                     );
                 }
-                header += this.renderer.tablerow(cell);
+
+                header.push( this.renderer.tablerow(cell) );
 
                 for (i = 0; i < this.token.cells.length; i++) {
                     row = this.token.cells[i];
 
-                    cell = '';
+                    cell = [];
                     for (j = 0; j < row.length; j++) {
-                        cell += this.renderer.tablecell(
-                            this.inline.output(row[j]),
-                            { header: false, align: this.token.align[j] }
+                        cell.push(
+                            this.renderer.tablecell(
+                                this.inline.output(row[j]),
+                                { header: false, align: this.token.align[j] }
+                            )
                         );
                     }
 
-                    body += this.renderer.tablerow(cell);
+                    body.push(
+                        this.renderer.tablerow(cell)
+                    );
                 }
                 return this.renderer.table(header, body);
+
             }
             case 'blockquote_start': {
-                body = '';
+                // body = '';
+                //
+                // while (this.next().type !== 'blockquote_end') {
+                //     body += this.tok();
+                // }
+                //
+                // return this.renderer.blockquote(body);
 
+                let body = [];
                 while (this.next().type !== 'blockquote_end') {
-                    body += this.tok();
+                    body.push( this.tok() );
                 }
 
                 return this.renderer.blockquote(body);
+
             }
             case 'list_start': {
                 // body = '';
@@ -1601,7 +1797,14 @@
                 var loose = this.token.loose;
 
                 if (this.token.task) {
-                    body += this.renderer.checkbox(this.token.checked);
+                    // body += this.renderer.checkbox(this.token.checked);
+                    body.push(
+                        this.renderer.checkbox(this.token.checked)
+                    );
+
+                    body.push(
+                        this.renderer.text(' ')
+                    );
                 }
 
                 while (this.next().type !== 'list_item_end') {
@@ -1612,14 +1815,39 @@
                     );
                 }
 
-                return this.renderer.listitem(body);
+                // body = body.map(function (t) {
+                //     return t[0];
+                // }).filter(function (t) {
+                //     return !!t;
+                // });
+                var vnodes = [];
+                for(var i=0;i<body.length;i++) {
+                    if(!body[i]) {
+                        continue;
+                    }
+                    if(!isArray(body[i])){
+                        vnodes.push(body[i]);
+                        continue;
+                    }
+                    for(var j=0;j<body[i].length;j++) {
+                        body[i][j] && vnodes.push(body[i][j]);
+                    }
+                }
+
+                return this.renderer.listitem(vnodes);
             }
             case 'html': {
                 // TODO parse inline content if parameter markdown=1
                 return this.renderer.html(this.token.text);
             }
             case 'paragraph': {
-                return this.renderer.paragraph(this.inline.output(this.token.text));
+                // return this.renderer.paragraph(this.inline.output(this.token.text));
+
+                // var vnodes = this.inline.output(this.token.text);
+                // return this.renderer.paragraph(vnode.text);
+
+                var vnodes = this.inline.output(this.token.text);
+                return this.renderer.paragraph(vnodes);
             }
             case 'text': {
                 return this.renderer.paragraph(this.parseText());
