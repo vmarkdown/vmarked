@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>vmarked</title>
-    <script src="//cdn.bootcss.com/marked/0.4.0/marked.js"></script>
     <script src="//cdn.bootcss.com/preact/8.2.9/preact.js"></script>
-    <script src="../vmarked.js"></script>
+    <script src="../dist/vmarked.js"></script>
 </head>
 <body>
 
@@ -29,11 +28,11 @@
 
     const { Component, h, render } = preact;
 
-    marked.setOptions({
+    vmarked.setOptions({
         h: h
     });
 
-    var vnodes = marked(markdownHTML);
+    var vnodes = vmarked(markdownHTML);
 
     console.log(vnodes);
 
