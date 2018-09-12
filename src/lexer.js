@@ -1,5 +1,5 @@
 import block from './block';
-import marked from './marked';
+import defaults from './defaults';
 import { splitCells, rtrim } from './helper';
 
 /**
@@ -9,7 +9,7 @@ import { splitCells, rtrim } from './helper';
 function Lexer(options) {
     this.tokens = [];
     this.tokens.links = Object.create(null);
-    this.options = options || marked.defaults;
+    this.options = options || defaults;
     this.rules = block.normal;
 
     if (this.options.pedantic) {

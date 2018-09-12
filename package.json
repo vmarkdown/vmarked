@@ -22,13 +22,18 @@
     "dist"
   ],
   "devDependencies": {
+    "rollup": "^0.65.2",
+    "rollup-plugin-commonjs": "^9.1.6",
+    "rollup-plugin-uglify": "^5.0.2",
     "text-loader": "^0.0.1",
     "webpack": "^4.17.2",
     "webpack-cli": "^3.1.0"
   },
   "scripts": {
-    "dev": "webpack --progress --colors --watch",
-    "build": "webpack -p"
+    "dev": "rollup -c -w",
+    "build": "npm run build:rollup",
+    "build:rollup": "rollup -c",
+    "build:webpack": "webpack -p"
   },
   "engines": {
     "node": ">=0.10.0"

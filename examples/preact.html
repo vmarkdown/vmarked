@@ -34,26 +34,38 @@
         h: h
     });
 
-    var vnodes = vmarked(markdownHTML);
-
-    console.log(vnodes);
 
     class Markdown extends Component {
         constructor() {
             super();
             this.state = {
-                tokens: []
+                vnodes: []
             };
         }
 
         componentDidMount() {
-            // this.setState({ tokens: tokens });
+            let vnodes = vmarked(markdownHTML);
+            console.log(vnodes);
+
+            this.setState({ vnodes: vnodes });
+
+            setTimeout( () => {
+
+                let vnodes2 = vmarked(
+`# h1 Heading 8-)
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading`);
+                this.setState({ vnodes: vnodes2 });
+            }, 5000);
+
         }
 
         render() {
             return h('div', {
                 className: 'markdown'
-            }, vnodes);
+            }, this.state.vnodes);
         }
     }
 

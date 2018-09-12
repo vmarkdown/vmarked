@@ -5,10 +5,6 @@ import { noop, edit, merge } from './helper';
  */
 
 var block = {
-    //============================
-    linenumber: /^\[__\:\d+\:__\]/,
-    //============================
-
     newline: /^\n+/,
     code: /^( {4}[^\n]+\n*)+/,
     fences: noop,

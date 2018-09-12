@@ -56,7 +56,7 @@ Renderer.prototype.heading = function(text, level, raw) {
     // // ignore IDs
     // return '<h' + level + '>' + text + '</h' + level + '>\n';
 
-    const h = this.options.h;
+    var h = this.options.h;
     return h('h'+level, {}, text);
 };
 

@@ -1,5 +1,5 @@
 import { merge, unescape } from './helper';
-import marked from './marked';
+import defaults from './defaults';
 import Renderer from "./renderer";
 import InlineLexer from "./inline-lexer";
 import TextRenderer from "./text-renderer";
@@ -11,7 +11,8 @@ import TextRenderer from "./text-renderer";
 function Parser(options) {
     this.tokens = [];
     this.token = null;
-    this.options = options || marked.defaults;
+    // this.options = options || marked.defaults;
+    this.options = options || defaults;
     this.options.renderer = this.options.renderer || new Renderer();
     this.renderer = this.options.renderer;
     this.renderer.options = this.options;
