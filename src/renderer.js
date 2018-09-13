@@ -1,5 +1,7 @@
 import { resolveUrl, escape, unescape } from './helper';
 import defaults from './defaults';
+import { parse } from './html';
+
 
 /**
  * Renderer
@@ -56,11 +58,18 @@ Renderer.prototype.blockquote = function(quote) {
 };
 
 Renderer.prototype.html = function(html) {
-
+    var h = this.options.h;
     // if(Vue){
     //     return Vue.compile(html);
     // }
-    return html;
+
+    var ast = parse(html);
+    return ast[0];
+
+    // debugger
+
+    // return html;
+    // return h('div', {}, ast);
 };
 
 Renderer.prototype.heading = function(text, level, raw) {
