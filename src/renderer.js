@@ -63,13 +63,17 @@ Renderer.prototype.html = function(html) {
     //     return Vue.compile(html);
     // }
 
-    var ast = parse(html);
-    return ast[0];
+    // debugger
+    // var ast = parse(html);
+    // return ast[0];
 
     // debugger
 
     // return html;
     // return h('div', {}, ast);
+
+    var ast = parse(html);
+    return ast;
 };
 
 Renderer.prototype.heading = function(text, level, raw) {

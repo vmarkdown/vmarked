@@ -102,7 +102,8 @@ export function parse(html, options) {
             if (!current.voidElement && !inComponent && nextChar && nextChar !== '<') {
                 current.children.push({
                     type: 'text',
-                    content: html.slice(start, html.indexOf('<', start))
+                    content: html.slice(start, html.indexOf('<', start)),
+                    text: html.slice(start, html.indexOf('<', start))
                 });
             }
 
@@ -125,16 +126,20 @@ export function parse(html, options) {
         if (!isOpen || current.voidElement) {
             level--;
             if (!inComponent && nextChar !== '<' && nextChar) {
-                // trailing text node
-                arr[level].children.push({
-                    type: 'text',
-                    content: html.slice(start, html.indexOf('<', start))
-                });
+
+                if(level>=0) {
+                    // trailing text node
+                    arr[level].children.push({
+                        type: 'text',
+                        content: html.slice(start, html.indexOf('<', start)),
+                        text: html.slice(start, html.indexOf('<', start))
+                    });
+                }
+
             }
         }
     });
 
     return result;
-};
-
+}
 
