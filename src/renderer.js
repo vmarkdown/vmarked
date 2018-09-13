@@ -35,6 +35,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
 
     var h = this.options.h;
 
+
     var data = {
         'class': {}
     };
