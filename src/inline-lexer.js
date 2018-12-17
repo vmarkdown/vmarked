@@ -59,6 +59,7 @@ InlineLexer.prototype.output = function(src) {
         prevCapZero;
 
     while (src) {
+
         // escape
         if (cap = this.rules.escape.exec(src)) {
             src = src.substring(cap[0].length);
@@ -151,6 +152,14 @@ InlineLexer.prototype.output = function(src) {
             out += this.renderer.codespan(escape(cap[2].trim(), true));
             continue;
         }
+
+        //===================================
+        if( src.charCodeAt(0) === 10 ) {
+            src = src.substring(1);
+            out += this.renderer.br();
+            continue;
+        }
+        //===================================
 
         // br
         if (cap = this.rules.br.exec(src)) {
