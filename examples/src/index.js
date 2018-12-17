@@ -1,5 +1,5 @@
 import marked from '../../index';
-const md = require('../md/cmd.md');
+const md = require('../md/demo.md');
 
 // document.getElementById('app').innerHTML = html;
 const unified = require('unified');
@@ -23,8 +23,7 @@ const processor = unified()
     });
 // console.timeEnd('parse');
 
-(async()=>{
-
+async function render() {
     console.time('marked');
 
     const html = marked(md, {
@@ -40,6 +39,9 @@ const processor = unified()
     // console.log(hast);
 
     const vdom = file.contents;
+    console.log(marked.lexer(md, {
+        breaks: true
+    }));
     console.log(vdom);
 
     console.time('render');
@@ -47,6 +49,12 @@ const processor = unified()
     console.timeEnd('render');
 
 
+}
+(async()=>{
+    await render();
+    // setTimeout(async function () {
+    //     await render();
+    // }, 3000);
 })();
 
 
