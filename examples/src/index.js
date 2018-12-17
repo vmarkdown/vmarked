@@ -1,5 +1,5 @@
 import marked from '../../index';
-const md = require('../md/maxiang.md');
+const md = require('../md/cmd.md');
 
 // document.getElementById('app').innerHTML = html;
 const unified = require('unified');
@@ -27,7 +27,9 @@ const processor = unified()
 
     console.time('marked');
 
-    const html = marked(md);
+    const html = marked(md, {
+        breaks: true
+    });
     console.timeEnd('marked');
 
     console.time('vdom');

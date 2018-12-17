@@ -153,14 +153,6 @@ InlineLexer.prototype.output = function(src) {
             continue;
         }
 
-        //===================================
-        if( src.charCodeAt(0) === 10 ) {
-            src = src.substring(1);
-            out += this.renderer.br();
-            continue;
-        }
-        //===================================
-
         // br
         if (cap = this.rules.br.exec(src)) {
             src = src.substring(cap[0].length);
