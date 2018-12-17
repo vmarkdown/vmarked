@@ -13,15 +13,15 @@ TextRenderer.prototype.strong =
             TextRenderer.prototype.del =
                 TextRenderer.prototype.text = function (text) {
                     return text;
-                }
+                };
 
 TextRenderer.prototype.link =
     TextRenderer.prototype.image = function(href, title, text) {
         return '' + text;
-    }
+    };
 
 TextRenderer.prototype.br = function() {
     return '';
-}
+};
 
 export default TextRenderer;

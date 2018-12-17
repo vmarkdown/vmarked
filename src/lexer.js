@@ -1,6 +1,7 @@
 import block from './block';
 import defaults from './defaults';
 import { splitCells, rtrim } from './helper';
+const marked = {defaults};
 
 /**
  * Block Lexer
@@ -9,7 +10,7 @@ import { splitCells, rtrim } from './helper';
 function Lexer(options) {
     this.tokens = [];
     this.tokens.links = Object.create(null);
-    this.options = options || defaults;
+    this.options = options || marked.defaults;
     this.rules = block.normal;
 
     if (this.options.pedantic) {
@@ -76,8 +77,6 @@ Lexer.prototype.token = function(src, top) {
         ischecked;
 
     while (src) {
-        // debugger
-
         // newline
         if (cap = this.rules.newline.exec(src)) {
             src = src.substring(cap[0].length);
@@ -106,7 +105,7 @@ Lexer.prototype.token = function(src, top) {
             src = src.substring(cap[0].length);
             this.tokens.push({
                 type: 'code',
-                lang: cap[2],
+                lang: cap[2] ? cap[2].trim() : cap[2],
                 text: cap[3] || ''
             });
             continue;
@@ -230,9 +229,10 @@ Lexer.prototype.token = function(src, top) {
 
                 // Determine whether the next list item belongs here.
                 // Backpedal if it does not belong in this list.
-                if (this.options.smartLists && i !== l - 1) {
+                if (i !== l - 1) {
                     b = block.bullet.exec(cap[i + 1])[0];
-                    if (bull !== b && !(bull.length > 1 && b.length > 1)) {
+                    if (bull.length > 1 ? b.length === 1
+                            : (b.length > 1 || (this.options.smartLists && b !== bull))) {
                         src = cap.slice(i + 1).join('\n') + src;
                         i = l - 1;
                     }

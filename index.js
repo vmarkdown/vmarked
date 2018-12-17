@@ -5,5 +5,5 @@
  */
 
 'use strict';
-import marked from './marked';
+import marked from './src/marked';
 export default marked;

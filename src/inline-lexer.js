@@ -1,5 +1,8 @@
 import { escape } from './helper';
 import inline from './inline';
+import defaults from "./defaults";
+const marked = { defaults };
+import Renderer from "./renderer";
 
 /**
  * Inline Lexer & Compiler
@@ -55,107 +58,33 @@ InlineLexer.prototype.output = function(src) {
         cap,
         prevCapZero;
 
-    var vnodes = [];
-
     while (src) {
-
         // escape
         if (cap = this.rules.escape.exec(src)) {
-            // src = src.substring(cap[0].length);
-            // out += cap[1];
-            // continue;
-
-
             src = src.substring(cap[0].length);
-            vnodes.push(
-                this.renderer.text(cap[1])
-            );
-            continue;
-        }
-
-        // autolink
-        if (cap = this.rules.autolink.exec(src)) {
-            // src = src.substring(cap[0].length);
-            // if (cap[2] === '@') {
-            //     text = escape(this.mangle(cap[1]));
-            //     href = 'mailto:' + text;
-            // } else {
-            //     text = escape(cap[1]);
-            //     href = text;
-            // }
-            // out += this.renderer.link(href, null, text);
-            // continue;
-
-            src = src.substring(cap[0].length);
-            if (cap[2] === '@') {
-                text = escape(this.mangle(cap[1]));
-                href = 'mailto:' + text;
-            } else {
-                text = escape(cap[1]);
-                href = text;
-            }
-            vnodes.push(
-                this.renderer.link(href, null, text)
-            );
-            continue;
-        }
-
-        // url (gfm)
-        if (!this.inLink && (cap = this.rules.url.exec(src))) {
-            do {
-                prevCapZero = cap[0];
-                cap[0] = this.rules._backpedal.exec(cap[0])[0];
-            } while (prevCapZero !== cap[0]);
-            src = src.substring(cap[0].length);
-            if (cap[2] === '@') {
-                text = escape(cap[0]);
-                href = 'mailto:' + text;
-            } else {
-                text = escape(cap[0]);
-                if (cap[1] === 'www.') {
-                    href = 'http://' + text;
-                } else {
-                    href = text;
-                }
-            }
-            // out += this.renderer.link(href, null, text);
-
-            vnodes.push(
-                this.renderer.link(href, null, text)
-            );
-
+            out += cap[1];
             continue;
         }
 
         // tag
         if (cap = this.rules.tag.exec(src)) {
-            // if (!this.inLink && /^<a /i.test(cap[0])) {
-            //     this.inLink = true;
-            // } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
-            //     this.inLink = false;
-            // }
-            // src = src.substring(cap[0].length);
-            // out += this.options.sanitize
-            //     ? this.options.sanitizer
-            //         ? this.options.sanitizer(cap[0])
-            //         : escape(cap[0])
-            //     : cap[0]
-            // continue;
-
-
             if (!this.inLink && /^<a /i.test(cap[0])) {
                 this.inLink = true;
             } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
                 this.inLink = false;
             }
+            if (!this.inRawBlock && /^<(pre|code|kbd|script)(\s|>)/i.test(cap[0])) {
+                this.inRawBlock = true;
+            } else if (this.inRawBlock && /^<\/(pre|code|kbd|script)(\s|>)/i.test(cap[0])) {
+                this.inRawBlock = false;
+            }
+
             src = src.substring(cap[0].length);
-            vnodes.push(
-                this.options.sanitize
-                    ? this.options.sanitizer
+            out += this.options.sanitize
+                ? this.options.sanitizer
                     ? this.options.sanitizer(cap[0])
                     : escape(cap[0])
-                    : cap[0]
-            );
+                : cap[0];
             continue;
         }
 
@@ -177,17 +106,10 @@ InlineLexer.prototype.output = function(src) {
                 title = cap[3] ? cap[3].slice(1, -1) : '';
             }
             href = href.trim().replace(/^<([\s\S]*)>$/, '$1');
-            // out += this.outputLink(cap, {
-            //     href: InlineLexer.escapes(href),
-            //     title: InlineLexer.escapes(title)
-            // });
-            vnodes.push(
-                this.outputLink(cap, {
-                    href: InlineLexer.escapes(href),
-                    title: InlineLexer.escapes(title)
-                })
-            );
-
+            out += this.outputLink(cap, {
+                href: InlineLexer.escapes(href),
+                title: InlineLexer.escapes(title)
+            });
             this.inLink = false;
             continue;
         }
@@ -195,114 +117,100 @@ InlineLexer.prototype.output = function(src) {
         // reflink, nolink
         if ((cap = this.rules.reflink.exec(src))
             || (cap = this.rules.nolink.exec(src))) {
-            // src = src.substring(cap[0].length);
-            // link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
-            // link = this.links[link.toLowerCase()];
-            // if (!link || !link.href) {
-            //     out += cap[0].charAt(0);
-            //     src = cap[0].substring(1) + src;
-            //     continue;
-            // }
-            // this.inLink = true;
-            // out += this.outputLink(cap, link);
-            // this.inLink = false;
-            // continue;
-
             src = src.substring(cap[0].length);
             link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
             link = this.links[link.toLowerCase()];
             if (!link || !link.href) {
-                // out += cap[0].charAt(0);
-                vnodes.push(
-                    this.renderer.text(cap[0].charAt(0))
-                );
-
+                out += cap[0].charAt(0);
                 src = cap[0].substring(1) + src;
                 continue;
             }
             this.inLink = true;
-            vnodes.push(
-                this.outputLink(cap, link)
-            );
+            out += this.outputLink(cap, link);
             this.inLink = false;
             continue;
-
         }
 
         // strong
         if (cap = this.rules.strong.exec(src)) {
-            // src = src.substring(cap[0].length);
-            // out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
-            // continue;
-
             src = src.substring(cap[0].length);
-            var vnode = this.output(cap[4] || cap[3] || cap[2] || cap[1]);
-            vnodes.push(
-                this.renderer.strong(vnode)
-            );
+            out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
             continue;
         }
 
         // em
         if (cap = this.rules.em.exec(src)) {
-            // src = src.substring(cap[0].length);
-            // out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
-            // continue;
-
             src = src.substring(cap[0].length);
-            vnodes.push(
-                this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]))
-            );
+            out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
             continue;
         }
 
         // code
         if (cap = this.rules.code.exec(src)) {
-            // src = src.substring(cap[0].length);
-            // out += this.renderer.codespan(escape(cap[2].trim(), true));
-            // continue;
-
             src = src.substring(cap[0].length);
-            vnodes.push(
-                this.renderer.codespan(cap[2].trim(), true)
-            );
+            out += this.renderer.codespan(escape(cap[2].trim(), true));
             continue;
         }
 
         // br
         if (cap = this.rules.br.exec(src)) {
-            // src = src.substring(cap[0].length);
-            // out += this.renderer.br();
-            // continue;
-
             src = src.substring(cap[0].length);
-            vnodes.push(
-                this.renderer.br()
-            );
+            out += this.renderer.br();
             continue;
         }
 
         // del (gfm)
         if (cap = this.rules.del.exec(src)) {
-            // src = src.substring(cap[0].length);
-            // out += this.renderer.del(this.output(cap[1]));
-            // continue;
-
-
             src = src.substring(cap[0].length);
-            vnodes.push(
-                this.renderer.del(this.output(cap[1]))
-            );
+            out += this.renderer.del(this.output(cap[1]));
+            continue;
+        }
+
+        // autolink
+        if (cap = this.rules.autolink.exec(src)) {
+            src = src.substring(cap[0].length);
+            if (cap[2] === '@') {
+                text = escape(this.mangle(cap[1]));
+                href = 'mailto:' + text;
+            } else {
+                text = escape(cap[1]);
+                href = text;
+            }
+            out += this.renderer.link(href, null, text);
+            continue;
+        }
+
+        // url (gfm)
+        if (!this.inLink && (cap = this.rules.url.exec(src))) {
+            if (cap[2] === '@') {
+                text = escape(cap[0]);
+                href = 'mailto:' + text;
+            } else {
+                // do extended autolink path validation
+                do {
+                    prevCapZero = cap[0];
+                    cap[0] = this.rules._backpedal.exec(cap[0])[0];
+                } while (prevCapZero !== cap[0]);
+                text = escape(cap[0]);
+                if (cap[1] === 'www.') {
+                    href = 'http://' + text;
+                } else {
+                    href = text;
+                }
+            }
+            src = src.substring(cap[0].length);
+            out += this.renderer.link(href, null, text);
             continue;
         }
 
         // text
         if (cap = this.rules.text.exec(src)) {
             src = src.substring(cap[0].length);
-            // out += this.renderer.text(escape(this.smartypants(cap[0])));
-            vnodes.push(
-                this.renderer.text(this.smartypants(cap[0]))
-            );
+            if (this.inRawBlock) {
+                out += this.renderer.text(cap[0]);
+            } else {
+                out += this.renderer.text(escape(this.smartypants(cap[0])));
+            }
             continue;
         }
 
@@ -311,16 +219,12 @@ InlineLexer.prototype.output = function(src) {
         }
     }
 
-    // return out;
-    // return (vnodes && vnodes.length>0)?vnodes[0]:{
-    //     text: ''
-    // };
-    return vnodes;
+    return out;
 };
 
 InlineLexer.escapes = function(text) {
     return text ? text.replace(InlineLexer.rules._escapes, '$1') : text;
-}
+};
 
 /**
  * Compile Link
@@ -379,6 +283,5 @@ InlineLexer.prototype.mangle = function(text) {
 
     return out;
 };
-
 
 export default InlineLexer;

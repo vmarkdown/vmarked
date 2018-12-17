@@ -34,7 +34,7 @@ function marked(src, opt, callback) {
             i = 0;
 
         try {
-            tokens = Lexer.lex(src, opt)
+            tokens = Lexer.lex(src, opt);
         } catch (e) {
             return callback(e);
         }

@@ -1,8 +1,8 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
-    (global.vmarked = factory());
-}(this, (function () { 'use strict';
+    global.vmarked = factory();
+}(typeof self !== 'undefined' ? self : this, function () { 'use strict';
 
     /**
      * Helpers
@@ -15,6 +15,20 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    function unescape(html) {
+        // explicitly match decimal, hex, and named HTML entities
+        return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig, function(_, n) {
+            n = n.toLowerCase();
+            if (n === 'colon') return ':';
+            if (n.charAt(0) === '#') {
+                return n.charAt(1) === 'x'
+                    ? String.fromCharCode(parseInt(n.substring(2), 16))
+                    : String.fromCharCode(+n.substring(1));
+            }
+            return '';
+        });
     }
 
     function edit(regex, opt) {
@@ -32,6 +46,54 @@
             }
         };
     }
+
+    function cleanUrl(sanitize, base, href) {
+        if (sanitize) {
+            try {
+                var prot = decodeURIComponent(unescape(href))
+                    .replace(/[^\w:]/g, '')
+                    .toLowerCase();
+            } catch (e) {
+                return null;
+            }
+            if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
+                return null;
+            }
+        }
+        if (base && !originIndependentUrl.test(href)) {
+            href = resolveUrl(base, href);
+        }
+        try {
+            href = encodeURI(href).replace(/%25/g, '%');
+        } catch (e) {
+            return null;
+        }
+        return href;
+    }
+
+    function resolveUrl(base, href) {
+        if (!baseUrls[' ' + base]) {
+            // we can ignore everything in base after the last slash of its path component,
+            // but we might need to add _that_
+            // https://tools.ietf.org/html/rfc3986#section-3
+            if (/^[^:]+:\/*[^/]*$/.test(base)) {
+                baseUrls[' ' + base] = base + '/';
+            } else {
+                baseUrls[' ' + base] = rtrim(base, '/', true);
+            }
+        }
+        base = baseUrls[' ' + base];
+
+        if (href.slice(0, 2) === '//') {
+            return base.replace(/:[\s\S]*/, ':') + href;
+        } else if (href.charAt(0) === '/') {
+            return base.replace(/(:\/*[^/]*)[\s\S]*/, '$1') + href;
+        } else {
+            return base + href;
+        }
+    }
+    var baseUrls = {};
+    var originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
 
     function noop() {}
     noop.exec = noop;
@@ -111,11 +173,6 @@
         return str.substr(0, str.length - suffLen);
     }
 
-
-    var isArray = Array.isArray || function (val) {
-        return !! val && '[object Array]' === Object.prototype.toString.call(val);
-    };
-
     /**
      * Block-Level Grammar
      */
@@ -130,15 +187,15 @@
         blockquote: /^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/,
         list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
         html: '^ {0,3}(?:' // optional indentation
-            + '<(script|pre|style)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)' // (1)
-            + '|comment[^\\n]*(\\n+|$)' // (2)
-            + '|<\\?[\\s\\S]*?\\?>\\n*' // (3)
-            + '|<![A-Z][\\s\\S]*?>\\n*' // (4)
-            + '|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>\\n*' // (5)
-            + '|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:\\n{2,}|$)' // (6)
-            + '|<(?!script|pre|style)([a-z][\\w-]*)(?:attribute)*? */?>(?=\\h*\\n)[\\s\\S]*?(?:\\n{2,}|$)' // (7) open tag
-            + '|</(?!script|pre|style)[a-z][\\w-]*\\s*>(?=\\h*\\n)[\\s\\S]*?(?:\\n{2,}|$)' // (7) closing tag
-            + ')',
+        + '<(script|pre|style)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)' // (1)
+        + '|comment[^\\n]*(\\n+|$)' // (2)
+        + '|<\\?[\\s\\S]*?\\?>\\n*' // (3)
+        + '|<![A-Z][\\s\\S]*?>\\n*' // (4)
+        + '|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>\\n*' // (5)
+        + '|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:\\n{2,}|$)' // (6)
+        + '|<(?!script|pre|style)([a-z][\\w-]*)(?:attribute)*? */?>(?=\\h*\\n)[\\s\\S]*?(?:\\n{2,}|$)' // (7) open tag
+        + '|</(?!script|pre|style)[a-z][\\w-]*\\s*>(?=\\h*\\n)[\\s\\S]*?(?:\\n{2,}|$)' // (7) closing tag
+        + ')',
         def: /^ {0,3}\[(label)\]: *\n? *<?([^\s>]+)>?(?:(?: +\n? *| *\n *)(title))? *(?:\n+|$)/,
         table: noop,
         lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
@@ -200,7 +257,7 @@
      */
 
     block.gfm = merge({}, block.normal, {
-        fences: /^ *(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\n? *\1 *(?:\n+|$)/,
+        fences: /^ {0,3}(`{3,}|~{3,})([^`\n]*)\n(?:|([\s\S]*?)\n)(?: {0,3}\1[~`]* *(?:\n+|$)|$)/,
         paragraph: /^/,
         heading: /^ *(#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
     });
@@ -238,79 +295,6 @@
         def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/
     });
 
-    function vnode(sel, data, children, text, elm) {
-        var key = data === undefined ? undefined : data.key;
-        return {
-            tag: sel,
-            children: children,
-            key: key,
-            text: text,
-            data: data,
-        };
-    }
-
-    function primitive(s) {
-        return typeof s === 'string' || typeof s === 'number';
-    }
-
-    var is = {
-        primitive: primitive,
-        array: Array.isArray
-    };
-
-    function addNS(data, children, sel) {
-        data.ns = 'http://www.w3.org/2000/svg';
-        if (sel !== 'foreignObject' && children !== undefined) {
-            for (var i = 0; i < children.length; ++i) {
-                var childData = children[i].data;
-                if (childData !== undefined) {
-                    addNS(childData, children[i].children, children[i].sel);
-                }
-            }
-        }
-    }
-
-    function h(sel, b, c) {
-        var data = {}, children, text, i;
-        if (c !== undefined) {
-            data = b;
-            if (is.array(c)) {
-                children = c;
-            }
-            else if (is.primitive(c)) {
-                text = c;
-            }
-            else if (c && c.sel) {
-                children = [c];
-            }
-        }
-        else if (b !== undefined) {
-            if (is.array(b)) {
-                children = b;
-            }
-            else if (is.primitive(b)) {
-                text = b;
-            }
-            else if (b && b.sel) {
-                children = [b];
-            }
-            else {
-                data = b;
-            }
-        }
-        if (is.array(children)) {
-            for (i = 0; i < children.length; ++i) {
-                if (is.primitive(children[i]))
-                    children[i] = vnode(undefined, undefined, undefined, children[i]);
-            }
-        }
-        if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g' &&
-            (sel.length === 3 || sel[3] === '.' || sel[3] === '#')) {
-            addNS(data, children, sel);
-        }
-        return vnode(sel, data, children, text, undefined);
-    }
-
     var defaults = {
         baseUrl: null,
         breaks: false,
@@ -327,9 +311,170 @@
         smartLists: false,
         smartypants: false,
         tables: true,
-        xhtml: false,
-        h: h
+        xhtml: false
     };
+
+    const marked = { defaults };
+
+    function Renderer(options) {
+        this.options = options || marked.defaults;
+    }
+
+    Renderer.prototype.code = function(code, infostring, escaped) {
+        var lang = (infostring || '').match(/\S*/)[0];
+        if (this.options.highlight) {
+            var out = this.options.highlight(code, lang);
+            if (out != null && out !== code) {
+                escaped = true;
+                code = out;
+            }
+        }
+
+        if (!lang) {
+            return '<pre><code>'
+                + (escaped ? code : escape$1(code, true))
+                + '</code></pre>';
+        }
+
+        return '<pre><code class="'
+            + this.options.langPrefix
+            + escape$1(lang, true)
+            + '">'
+            + (escaped ? code : escape$1(code, true))
+            + '</code></pre>\n';
+    };
+
+    Renderer.prototype.blockquote = function(quote) {
+        return '<blockquote>\n' + quote + '</blockquote>\n';
+    };
+
+    Renderer.prototype.html = function(html) {
+        return html;
+    };
+
+    Renderer.prototype.heading = function(text, level, raw) {
+        if (this.options.headerIds) {
+            return '<h'
+                + level
+                + ' id="'
+                + this.options.headerPrefix
+                + raw.toLowerCase().replace(/[^\w]+/g, '-')
+                + '">'
+                + text
+                + '</h'
+                + level
+                + '>\n';
+        }
+        // ignore IDs
+        return '<h' + level + '>' + text + '</h' + level + '>\n';
+    };
+
+    Renderer.prototype.hr = function() {
+        return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
+    };
+
+    Renderer.prototype.list = function(body, ordered, start) {
+        var type = ordered ? 'ol' : 'ul',
+            startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
+        return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
+    };
+
+    Renderer.prototype.listitem = function(text) {
+        return '<li>' + text + '</li>\n';
+    };
+
+    Renderer.prototype.checkbox = function(checked) {
+        return '<input '
+            + (checked ? 'checked="" ' : '')
+            + 'disabled="" type="checkbox"'
+            + (this.options.xhtml ? ' /' : '')
+            + '> ';
+    };
+
+    Renderer.prototype.paragraph = function(text) {
+        return '<p>' + text + '</p>\n';
+    };
+
+    Renderer.prototype.table = function(header, body) {
+        if (body) body = '<tbody>' + body + '</tbody>';
+
+        return '<table>\n'
+            + '<thead>\n'
+            + header
+            + '</thead>\n'
+            + body
+            + '</table>\n';
+    };
+
+    Renderer.prototype.tablerow = function(content) {
+        return '<tr>\n' + content + '</tr>\n';
+    };
+
+    Renderer.prototype.tablecell = function(content, flags) {
+        var type = flags.header ? 'th' : 'td';
+        var tag = flags.align
+            ? '<' + type + ' align="' + flags.align + '">'
+            : '<' + type + '>';
+        return tag + content + '</' + type + '>\n';
+    };
+
+    // span level renderer
+    Renderer.prototype.strong = function(text) {
+        return '<strong>' + text + '</strong>';
+    };
+
+    Renderer.prototype.em = function(text) {
+        return '<em>' + text + '</em>';
+    };
+
+    Renderer.prototype.codespan = function(text) {
+        return '<code>' + text + '</code>';
+    };
+
+    Renderer.prototype.br = function() {
+        return this.options.xhtml ? '<br/>' : '<br>';
+    };
+
+    Renderer.prototype.del = function(text) {
+        return '<del>' + text + '</del>';
+    };
+
+    Renderer.prototype.link = function(href, title, text) {
+        href = cleanUrl(this.options.sanitize, this.options.baseUrl, href);
+        if (href === null) {
+            return text;
+        }
+        var out = '<a href="' + escape$1(href) + '"';
+        if (title) {
+            out += ' title="' + title + '"';
+        }
+        out += '>' + text + '</a>';
+        return out;
+    };
+
+    Renderer.prototype.image = function(href, title, text) {
+        href = cleanUrl(this.options.sanitize, this.options.baseUrl, href);
+        if (href === null) {
+            return text;
+        }
+
+        var out = '<img src="' + href + '" alt="' + text + '"';
+        if (title) {
+            out += ' title="' + title + '"';
+        }
+        out += this.options.xhtml ? '/>' : '>';
+        return out;
+    };
+
+    Renderer.prototype.text = function(text) {
+        return text;
+    };
+
+    var defaults$1 = merge({}, defaults, {
+        renderer: new Renderer()
+    });
+
+    const marked$1 = {defaults: defaults$1};
 
     /**
      * Block Lexer
@@ -338,7 +483,7 @@
     function Lexer(options) {
         this.tokens = [];
         this.tokens.links = Object.create(null);
-        this.options = options || defaults;
+        this.options = options || marked$1.defaults;
         this.rules = block.normal;
 
         if (this.options.pedantic) {
@@ -405,8 +550,6 @@
             ischecked;
 
         while (src) {
-            // debugger
-
             // newline
             if (cap = this.rules.newline.exec(src)) {
                 src = src.substring(cap[0].length);
@@ -435,7 +578,7 @@
                 src = src.substring(cap[0].length);
                 this.tokens.push({
                     type: 'code',
-                    lang: cap[2],
+                    lang: cap[2] ? cap[2].trim() : cap[2],
                     text: cap[3] || ''
                 });
                 continue;
@@ -559,9 +702,10 @@
 
                     // Determine whether the next list item belongs here.
                     // Backpedal if it does not belong in this list.
-                    if (this.options.smartLists && i !== l - 1) {
+                    if (i !== l - 1) {
                         b = block.bullet.exec(cap[i + 1])[0];
-                        if (bull !== b && !(bull.length > 1 && b.length > 1)) {
+                        if (bull.length > 1 ? b.length === 1
+                                : (b.length > 1 || (this.options.smartLists && b !== bull))) {
                             src = cap.slice(i + 1).join('\n') + src;
                             i = l - 1;
                         }
@@ -727,477 +871,6 @@
         return this.tokens;
     };
 
-    /*jshint -W030 */
-    var parseTag = (function () {
-
-        var attrRE = /([\w-]+)|['"]{1}([^'"]*)['"]{1}/g;
-
-    // create optimized lookup object for
-    // void elements as listed here:
-    // http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
-        var lookup = (Object.create) ? Object.create(null) : {};
-        lookup.area = true;
-        lookup.base = true;
-        lookup.br = true;
-        lookup.col = true;
-        lookup.embed = true;
-        lookup.hr = true;
-        lookup.img = true;
-        lookup.input = true;
-        lookup.keygen = true;
-        lookup.link = true;
-        lookup.menuitem = true;
-        lookup.meta = true;
-        lookup.param = true;
-        lookup.source = true;
-        lookup.track = true;
-        lookup.wbr = true;
-
-        return function (tag) {
-            var i = 0;
-            var key;
-            var res = {
-                tag: '',
-                type: 'tag',
-                name: '',
-                voidElement: false,
-                attrs: {},
-                data: {
-                    attrs: {}
-                },
-                children: []
-            };
-            res.data.attrs = res.attrs;
-
-            tag.replace(attrRE, function (match) {
-                if (i % 2) {
-                    key = match;
-                } else {
-                    if (i === 0) {
-                        if (lookup[match] || tag.charAt(tag.length - 2) === '/') {
-                            res.voidElement = true;
-                        }
-                        res.name = match;
-                        res.tag = match;
-                    } else {
-                        res.attrs[key] = match.replace(/['"]/g, '');
-                        // res.data.attrs[key] = match.replace(/['"]/g, '');
-                    }
-                }
-                i++;
-            });
-
-            return res;
-        };
-
-    })();
-
-    var tagRE = /<(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])+>/g;
-    // re-used obj for quick lookups of components
-    var empty = Object.create ? Object.create(null) : {};
-
-    function parse(html, options) {
-        options || (options = {});
-        options.components || (options.components = empty);
-        var result = [];
-        var current;
-        var level = -1;
-        var arr = [];
-        var byTag = {};
-        var inComponent = false;
-
-        html.replace(tagRE, function (tag, index) {
-            if (inComponent) {
-                if (tag !== ('</' + current.name + '>')) {
-                    return;
-                } else {
-                    inComponent = false;
-                }
-            }
-            var isOpen = tag.charAt(1) !== '/';
-            var start = index + tag.length;
-            var nextChar = html.charAt(start);
-            var parent;
-
-            if (isOpen) {
-                level++;
-
-                current = parseTag(tag);
-                if (current.type === 'tag' && options.components[current.name]) {
-                    current.type = 'component';
-                    inComponent = true;
-                }
-
-                if (!current.voidElement && !inComponent && nextChar && nextChar !== '<') {
-                    current.children.push({
-                        type: 'text',
-                        content: html.slice(start, html.indexOf('<', start)),
-                        text: html.slice(start, html.indexOf('<', start))
-                    });
-                }
-
-                byTag[current.tagName] = current;
-
-                // if we're at root, push new base node
-                if (level === 0) {
-                    result.push(current);
-                }
-
-                parent = arr[level - 1];
-
-                if (parent) {
-                    parent.children.push(current);
-                }
-
-                arr[level] = current;
-            }
-
-            if (!isOpen || current.voidElement) {
-                level--;
-                if (!inComponent && nextChar !== '<' && nextChar) {
-
-                    if(level>=0) {
-                        // trailing text node
-                        arr[level].children.push({
-                            type: 'text',
-                            content: html.slice(start, html.indexOf('<', start)),
-                            text: html.slice(start, html.indexOf('<', start))
-                        });
-                    }
-
-                }
-            }
-        });
-
-        return result;
-    }
-
-    /**
-     * Renderer
-     */
-
-    function Renderer$1(options) {
-        this.options = options || defaults;
-    }
-
-    Renderer$1.prototype.code = function(code, lang, escaped) {
-        // if (this.options.highlight) {
-        //     var out = this.options.highlight(code, lang);
-        //     if (out != null && out !== code) {
-        //         escaped = true;
-        //         code = out;
-        //     }
-        // }
-        //
-        // if (!lang) {
-        //     return '<pre><code>'
-        //         + (escaped ? code : escape(code, true))
-        //         + '</code></pre>';
-        // }
-        //
-        // return '<pre><code class="'
-        //     + this.options.langPrefix
-        //     + escape(lang, true)
-        //     + '">'
-        //     + (escaped ? code : escape(code, true))
-        //     + '</code></pre>\n';
-
-        var h = this.options.h;
-
-
-        var data = {
-            'class': {}
-        };
-
-        if (lang) {
-            var langClassName = this.options.langPrefix + escape$1(lang, true);
-            data['class'][langClassName] = true;
-        }
-
-        return h('pre', {}, [
-            h('code', data , code)
-        ]);
-
-    };
-
-    Renderer$1.prototype.blockquote = function(quote) {
-        // return '<blockquote>\n' + quote + '</blockquote>\n';
-
-        var h = this.options.h;
-        return h('blockquote', {}, quote);
-    };
-
-    Renderer$1.prototype.html = function(html) {
-        var h = this.options.h;
-        // if(Vue){
-        //     return Vue.compile(html);
-        // }
-
-        // debugger
-        // var ast = parse(html);
-        // return ast[0];
-
-        // debugger
-
-        // return html;
-        // return h('div', {}, ast);
-
-        var ast = parse(html);
-        return ast;
-    };
-
-    Renderer$1.prototype.heading = function(text, level, raw) {
-        // if (this.options.headerIds) {
-        //     return '<h'
-        //         + level
-        //         + ' id="'
-        //         + this.options.headerPrefix
-        //         + raw.toLowerCase().replace(/[^\w]+/g, '-')
-        //         + '">'
-        //         + text
-        //         + '</h'
-        //         + level
-        //         + '>\n';
-        // }
-        // // ignore IDs
-        // return '<h' + level + '>' + text + '</h' + level + '>\n';
-
-        var h = this.options.h;
-        return h('h'+level, {}, text);
-    };
-
-    Renderer$1.prototype.hr = function() {
-        // return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
-        var h = this.options.h;
-        return h('hr', {});
-    };
-
-    Renderer$1.prototype.list = function(body, ordered, start) {
-        // var type = ordered ? 'ol' : 'ul',
-        //     startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
-        // return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
-
-
-        var h = this.options.h;
-
-        var type = ordered ? 'ol' : 'ul';
-
-
-        return h(type, {
-
-        }, body);
-
-    };
-
-    // Renderer.prototype.listitem = function(text) {
-    //     // return '<li>' + text + '</li>\n';
-    //     var h = this.options.h;
-    //
-    //     // debugger
-    //     // if(Object.prototype.toString.call(text) === "[object Array]"){
-    //     //     text = text[0]
-    //     // }
-    //
-    //     return h('li', {
-    //     }, text);
-    //
-    //
-    // };
-
-    Renderer$1.prototype.listitem = function(vnodes) {
-
-        var h = this.options.h;
-        return h('li', {
-        }, vnodes);
-    };
-
-    Renderer$1.prototype.checkbox = function(checked) {
-        // return '<input '
-        //     + (checked ? 'checked="" ' : '')
-        //     + 'disabled="" type="checkbox"'
-        //     + (this.options.xhtml ? ' /' : '')
-        //     + '> ';
-
-
-
-
-        var h = this.options.h;
-
-        return h('input', {
-            attrs: {
-                checked: checked,
-                disabled: true,
-                type: 'checkbox'
-            }
-        });
-
-    };
-
-    // Renderer.prototype.paragraph = function(text) {
-    //     // return '<p>' + text + '</p>\n';
-    //     var h = this.options.h;
-    //     return h('p', {}, text);
-    // };
-
-    Renderer$1.prototype.paragraph = function(vnodes) {
-        // return '<p>' + text + '</p>\n';
-        // var h = this.options.h;
-        // return h('p', {}, text);
-
-        // debugger
-        // return vnodes;
-        var h = this.options.h;
-        return h('p', {}, vnodes);
-    };
-
-    Renderer$1.prototype.table = function(header, body) {
-        // if (body) body = '<tbody>' + body + '</tbody>';
-        //
-        // return '<table>\n'
-        //     + '<thead>\n'
-        //     + header
-        //     + '</thead>\n'
-        //     + body
-        //     + '</table>\n';
-
-        var h = this.options.h;
-        // if (body) body = h('tbody',{}, body);
-
-        return h('table', {}, [
-            h('thead', {}, header),
-            h('tbody',{}, body)
-        ]);
-
-    };
-
-    Renderer$1.prototype.tablerow = function(content) {
-        // return '<tr>\n' + content + '</tr>\n';
-
-        var h = this.options.h;
-        return h('tr', {}, content);
-    };
-
-    Renderer$1.prototype.tablecell = function(content, flags) {
-        // var type = flags.header ? 'th' : 'td';
-        // var tag = flags.align
-        //     ? '<' + type + ' align="' + flags.align + '">'
-        //     : '<' + type + '>';
-        // return tag + content + '</' + type + '>\n';
-
-        var h = this.options.h;
-        var type = flags.header ? 'th' : 'td';
-        return h(type, {
-            attrs:{
-                align: flags.align
-            }
-        }, content);
-    };
-
-    // span level renderer
-    Renderer$1.prototype.strong = function(text) {
-        // return '<strong>' + text + '</strong>';
-
-        var h = this.options.h;
-        return h('strong', {}, text);
-
-    };
-
-    Renderer$1.prototype.em = function(text) {
-        // return '<em>' + text + '</em>';
-
-        var h = this.options.h;
-        return h('em', {}, text);
-    };
-
-    Renderer$1.prototype.codespan = function(text) {
-        // return '<code>' + text + '</code>';
-        var h = this.options.h;
-        return h('code', {}, text);
-    };
-
-    Renderer$1.prototype.br = function() {
-        // return this.options.xhtml ? '<br/>' : '<br>';
-        var h = this.options.h;
-        return h('br');
-    };
-
-    Renderer$1.prototype.del = function(text) {
-        // return '<del>' + text + '</del>';
-
-        var h = this.options.h;
-        return h('del', {}, text);
-
-    };
-
-    Renderer$1.prototype.link = function(href, title, text) {
-        // if (this.options.sanitize) {
-        //     try {
-        //         var prot = decodeURIComponent(unescape(href))
-        //             .replace(/[^\w:]/g, '')
-        //             .toLowerCase();
-        //     } catch (e) {
-        //         return text;
-        //     }
-        //     if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
-        //         return text;
-        //     }
-        // }
-        // if (this.options.baseUrl && !originIndependentUrl.test(href)) {
-        //     href = resolveUrl(this.options.baseUrl, href);
-        // }
-        // try {
-        //     href = encodeURI(href).replace(/%25/g, '%');
-        // } catch (e) {
-        //     return text;
-        // }
-        // var out = '<a href="' + escape(href) + '"';
-        // if (title) {
-        //     out += ' title="' + title + '"';
-        // }
-        // out += '>' + text + '</a>';
-        // return out;
-
-        var h = this.options.h;
-        return h('a', {
-            attrs: {
-                href: escape$1(href),
-                title: title?title:undefined
-            },
-            props: {
-
-            }
-        }, text);
-
-        // return h('a', {props: {href: '/foo'}}, 'I\'ll take you places!')
-    };
-
-    Renderer$1.prototype.image = function(href, title, text) {
-        // if (this.options.baseUrl && !originIndependentUrl.test(href)) {
-        //     href = resolveUrl(this.options.baseUrl, href);
-        // }
-        // var out = '<img src="' + href + '" alt="' + text + '"';
-        // if (title) {
-        //     out += ' title="' + title + '"';
-        // }
-        // out += this.options.xhtml ? '/>' : '>';
-        // return out;
-
-        var h = this.options.h;
-        return h('img', {
-            attrs: {
-                src: href,
-                title: title?title:undefined,
-                alt: text?text:undefined,
-            }
-        }, text);
-    };
-
-    Renderer$1.prototype.text = function(text) {
-        // return text;
-        var h = this.options.h;
-        return h('span', {}, text);
-    };
-
     /**
      * Inline-Level Grammar
      */
@@ -1207,21 +880,26 @@
         autolink: /^<(scheme:[^\s\x00-\x1f<>]*|email)>/,
         url: noop,
         tag: '^comment'
-            + '|^</[a-zA-Z][\\w:-]*\\s*>' // self-closing tag
-            + '|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>' // open tag
-            + '|^<\\?[\\s\\S]*?\\?>' // processing instruction, e.g. <?php ?>
-            + '|^<![a-zA-Z]+\\s[\\s\\S]*?>' // declaration, e.g. <!DOCTYPE html>
-            + '|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>', // CDATA section
+        + '|^</[a-zA-Z][\\w:-]*\\s*>' // self-closing tag
+        + '|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>' // open tag
+        + '|^<\\?[\\s\\S]*?\\?>' // processing instruction, e.g. <?php ?>
+        + '|^<![a-zA-Z]+\\s[\\s\\S]*?>' // declaration, e.g. <!DOCTYPE html>
+        + '|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>', // CDATA section
         link: /^!?\[(label)\]\(href(?:\s+(title))?\s*\)/,
         reflink: /^!?\[(label)\]\[(?!\s*\])((?:\\[\[\]]?|[^\[\]\\])+)\]/,
         nolink: /^!?\[(?!\s*\])((?:\[[^\[\]]*\]|\\[\[\]]|[^\[\]])*)\](?:\[\])?/,
         strong: /^__([^\s])__(?!_)|^\*\*([^\s])\*\*(?!\*)|^__([^\s][\s\S]*?[^\s])__(?!_)|^\*\*([^\s][\s\S]*?[^\s])\*\*(?!\*)/,
-        em: /^_([^\s_])_(?!_)|^\*([^\s*"<\[])\*(?!\*)|^_([^\s][\s\S]*?[^\s_])_(?!_)|^_([^\s_][\s\S]*?[^\s])_(?!_)|^\*([^\s"<\[][\s\S]*?[^\s*])\*(?!\*)|^\*([^\s*"<\[][\s\S]*?[^\s])\*(?!\*)/,
-        code: /^(`+)\s*([\s\S]*?[^`]?)\s*\1(?!`)/,
+        em: /^_([^\s_])_(?!_)|^\*([^\s*"<\[])\*(?!\*)|^_([^\s][\s\S]*?[^\s_])_(?!_|[^\spunctuation])|^_([^\s_][\s\S]*?[^\s])_(?!_|[^\spunctuation])|^\*([^\s"<\[][\s\S]*?[^\s*])\*(?!\*)|^\*([^\s*"<\[][\s\S]*?[^\s])\*(?!\*)/,
+        code: /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,
         br: /^( {2,}|\\)\n(?!\s*$)/,
         del: noop,
-        text: /^[\s\S]+?(?=[\\<!\[`*]|\b_| {2,}\n|$)/
+        text: /^(`+|[^`])[\s\S]*?(?=[\\<!\[`*]|\b_| {2,}\n|$)/
     };
+
+    // list of punctuation marks from common mark spec
+    // without ` and ] to workaround Rule 17 (inline code blocks/links)
+    inline._punctuation = '!"#$%&\'()*+,\\-./:;<=>?@\\[^_{|}~';
+    inline.em = edit(inline.em).replace(/punctuation/g, inline._punctuation).getRegex();
 
     inline._escapes = /\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/g;
 
@@ -1280,17 +958,19 @@
 
     inline.gfm = merge({}, inline.normal, {
         escape: edit(inline.escape).replace('])', '~|])').getRegex(),
-        url: edit(/^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/)
-            .replace('email', inline._email)
-            .getRegex(),
+        _extended_email: /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/,
+        url: /^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,
         _backpedal: /(?:[^?!.,:;*_~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_~)]+(?!$))+/,
         del: /^~+(?=\S)([\s\S]*?\S)~+/,
         text: edit(inline.text)
             .replace(']|', '~]|')
-            .replace('|', '|https?://|ftp://|www\\.|[a-zA-Z0-9.!#$%&\'*+/=?^_`{\\|}~-]+@|')
+            .replace('|$', '|https?://|ftp://|www\\.|[a-zA-Z0-9.!#$%&\'*+/=?^_`{\\|}~-]+@|$')
             .getRegex()
     });
 
+    inline.gfm.url = edit(inline.gfm.url, 'i')
+        .replace('email', inline.gfm._extended_email)
+        .getRegex();
     /**
      * GFM + Line Breaks Inline Grammar
      */
@@ -1300,12 +980,14 @@
         text: edit(inline.gfm.text).replace('{2,}', '*').getRegex()
     });
 
+    const marked$2 = { defaults: defaults$1 };
+
     /**
      * Inline Lexer & Compiler
      */
 
     function InlineLexer(links, options) {
-        this.options = options || marked.defaults;
+        this.options = options || marked$2.defaults;
         this.links = links;
         this.rules = inline.normal;
         this.renderer = this.options.renderer || new Renderer();
@@ -1346,114 +1028,41 @@
      */
 
     InlineLexer.prototype.output = function(src) {
-        var link,
+        var out = '',
+            link,
             text,
             href,
             title,
             cap,
             prevCapZero;
 
-        var vnodes = [];
-
         while (src) {
-
             // escape
             if (cap = this.rules.escape.exec(src)) {
-                // src = src.substring(cap[0].length);
-                // out += cap[1];
-                // continue;
-
-
                 src = src.substring(cap[0].length);
-                vnodes.push(
-                    this.renderer.text(cap[1])
-                );
-                continue;
-            }
-
-            // autolink
-            if (cap = this.rules.autolink.exec(src)) {
-                // src = src.substring(cap[0].length);
-                // if (cap[2] === '@') {
-                //     text = escape(this.mangle(cap[1]));
-                //     href = 'mailto:' + text;
-                // } else {
-                //     text = escape(cap[1]);
-                //     href = text;
-                // }
-                // out += this.renderer.link(href, null, text);
-                // continue;
-
-                src = src.substring(cap[0].length);
-                if (cap[2] === '@') {
-                    text = escape$1(this.mangle(cap[1]));
-                    href = 'mailto:' + text;
-                } else {
-                    text = escape$1(cap[1]);
-                    href = text;
-                }
-                vnodes.push(
-                    this.renderer.link(href, null, text)
-                );
-                continue;
-            }
-
-            // url (gfm)
-            if (!this.inLink && (cap = this.rules.url.exec(src))) {
-                do {
-                    prevCapZero = cap[0];
-                    cap[0] = this.rules._backpedal.exec(cap[0])[0];
-                } while (prevCapZero !== cap[0]);
-                src = src.substring(cap[0].length);
-                if (cap[2] === '@') {
-                    text = escape$1(cap[0]);
-                    href = 'mailto:' + text;
-                } else {
-                    text = escape$1(cap[0]);
-                    if (cap[1] === 'www.') {
-                        href = 'http://' + text;
-                    } else {
-                        href = text;
-                    }
-                }
-                // out += this.renderer.link(href, null, text);
-
-                vnodes.push(
-                    this.renderer.link(href, null, text)
-                );
-
+                out += cap[1];
                 continue;
             }
 
             // tag
             if (cap = this.rules.tag.exec(src)) {
-                // if (!this.inLink && /^<a /i.test(cap[0])) {
-                //     this.inLink = true;
-                // } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
-                //     this.inLink = false;
-                // }
-                // src = src.substring(cap[0].length);
-                // out += this.options.sanitize
-                //     ? this.options.sanitizer
-                //         ? this.options.sanitizer(cap[0])
-                //         : escape(cap[0])
-                //     : cap[0]
-                // continue;
-
-
                 if (!this.inLink && /^<a /i.test(cap[0])) {
                     this.inLink = true;
                 } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
                     this.inLink = false;
                 }
+                if (!this.inRawBlock && /^<(pre|code|kbd|script)(\s|>)/i.test(cap[0])) {
+                    this.inRawBlock = true;
+                } else if (this.inRawBlock && /^<\/(pre|code|kbd|script)(\s|>)/i.test(cap[0])) {
+                    this.inRawBlock = false;
+                }
+
                 src = src.substring(cap[0].length);
-                vnodes.push(
-                    this.options.sanitize
-                        ? this.options.sanitizer
+                out += this.options.sanitize
+                    ? this.options.sanitizer
                         ? this.options.sanitizer(cap[0])
                         : escape$1(cap[0])
-                        : cap[0]
-                );
+                    : cap[0];
                 continue;
             }
 
@@ -1475,17 +1084,10 @@
                     title = cap[3] ? cap[3].slice(1, -1) : '';
                 }
                 href = href.trim().replace(/^<([\s\S]*)>$/, '$1');
-                // out += this.outputLink(cap, {
-                //     href: InlineLexer.escapes(href),
-                //     title: InlineLexer.escapes(title)
-                // });
-                vnodes.push(
-                    this.outputLink(cap, {
-                        href: InlineLexer.escapes(href),
-                        title: InlineLexer.escapes(title)
-                    })
-                );
-
+                out += this.outputLink(cap, {
+                    href: InlineLexer.escapes(href),
+                    title: InlineLexer.escapes(title)
+                });
                 this.inLink = false;
                 continue;
             }
@@ -1493,114 +1095,100 @@
             // reflink, nolink
             if ((cap = this.rules.reflink.exec(src))
                 || (cap = this.rules.nolink.exec(src))) {
-                // src = src.substring(cap[0].length);
-                // link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
-                // link = this.links[link.toLowerCase()];
-                // if (!link || !link.href) {
-                //     out += cap[0].charAt(0);
-                //     src = cap[0].substring(1) + src;
-                //     continue;
-                // }
-                // this.inLink = true;
-                // out += this.outputLink(cap, link);
-                // this.inLink = false;
-                // continue;
-
                 src = src.substring(cap[0].length);
                 link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
                 link = this.links[link.toLowerCase()];
                 if (!link || !link.href) {
-                    // out += cap[0].charAt(0);
-                    vnodes.push(
-                        this.renderer.text(cap[0].charAt(0))
-                    );
-
+                    out += cap[0].charAt(0);
                     src = cap[0].substring(1) + src;
                     continue;
                 }
                 this.inLink = true;
-                vnodes.push(
-                    this.outputLink(cap, link)
-                );
+                out += this.outputLink(cap, link);
                 this.inLink = false;
                 continue;
-
             }
 
             // strong
             if (cap = this.rules.strong.exec(src)) {
-                // src = src.substring(cap[0].length);
-                // out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
-                // continue;
-
                 src = src.substring(cap[0].length);
-                var vnode = this.output(cap[4] || cap[3] || cap[2] || cap[1]);
-                vnodes.push(
-                    this.renderer.strong(vnode)
-                );
+                out += this.renderer.strong(this.output(cap[4] || cap[3] || cap[2] || cap[1]));
                 continue;
             }
 
             // em
             if (cap = this.rules.em.exec(src)) {
-                // src = src.substring(cap[0].length);
-                // out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
-                // continue;
-
                 src = src.substring(cap[0].length);
-                vnodes.push(
-                    this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]))
-                );
+                out += this.renderer.em(this.output(cap[6] || cap[5] || cap[4] || cap[3] || cap[2] || cap[1]));
                 continue;
             }
 
             // code
             if (cap = this.rules.code.exec(src)) {
-                // src = src.substring(cap[0].length);
-                // out += this.renderer.codespan(escape(cap[2].trim(), true));
-                // continue;
-
                 src = src.substring(cap[0].length);
-                vnodes.push(
-                    this.renderer.codespan(cap[2].trim(), true)
-                );
+                out += this.renderer.codespan(escape$1(cap[2].trim(), true));
                 continue;
             }
 
             // br
             if (cap = this.rules.br.exec(src)) {
-                // src = src.substring(cap[0].length);
-                // out += this.renderer.br();
-                // continue;
-
                 src = src.substring(cap[0].length);
-                vnodes.push(
-                    this.renderer.br()
-                );
+                out += this.renderer.br();
                 continue;
             }
 
             // del (gfm)
             if (cap = this.rules.del.exec(src)) {
-                // src = src.substring(cap[0].length);
-                // out += this.renderer.del(this.output(cap[1]));
-                // continue;
-
-
                 src = src.substring(cap[0].length);
-                vnodes.push(
-                    this.renderer.del(this.output(cap[1]))
-                );
+                out += this.renderer.del(this.output(cap[1]));
+                continue;
+            }
+
+            // autolink
+            if (cap = this.rules.autolink.exec(src)) {
+                src = src.substring(cap[0].length);
+                if (cap[2] === '@') {
+                    text = escape$1(this.mangle(cap[1]));
+                    href = 'mailto:' + text;
+                } else {
+                    text = escape$1(cap[1]);
+                    href = text;
+                }
+                out += this.renderer.link(href, null, text);
+                continue;
+            }
+
+            // url (gfm)
+            if (!this.inLink && (cap = this.rules.url.exec(src))) {
+                if (cap[2] === '@') {
+                    text = escape$1(cap[0]);
+                    href = 'mailto:' + text;
+                } else {
+                    // do extended autolink path validation
+                    do {
+                        prevCapZero = cap[0];
+                        cap[0] = this.rules._backpedal.exec(cap[0])[0];
+                    } while (prevCapZero !== cap[0]);
+                    text = escape$1(cap[0]);
+                    if (cap[1] === 'www.') {
+                        href = 'http://' + text;
+                    } else {
+                        href = text;
+                    }
+                }
+                src = src.substring(cap[0].length);
+                out += this.renderer.link(href, null, text);
                 continue;
             }
 
             // text
             if (cap = this.rules.text.exec(src)) {
                 src = src.substring(cap[0].length);
-                // out += this.renderer.text(escape(this.smartypants(cap[0])));
-                vnodes.push(
-                    this.renderer.text(this.smartypants(cap[0]))
-                );
+                if (this.inRawBlock) {
+                    out += this.renderer.text(cap[0]);
+                } else {
+                    out += this.renderer.text(escape$1(this.smartypants(cap[0])));
+                }
                 continue;
             }
 
@@ -1609,11 +1197,7 @@
             }
         }
 
-        // return out;
-        // return (vnodes && vnodes.length>0)?vnodes[0]:{
-        //     text: ''
-        // };
-        return vnodes;
+        return out;
     };
 
     InlineLexer.escapes = function(text) {
@@ -1704,6 +1288,8 @@
         return '';
     };
 
+    const marked$3 = {defaults: defaults$1};
+
     /**
      * Parsing & Compiling
      */
@@ -1711,9 +1297,8 @@
     function Parser(options) {
         this.tokens = [];
         this.token = null;
-        // this.options = options || marked.defaults;
-        this.options = options || defaults;
-        this.options.renderer = this.options.renderer || new Renderer$1();
+        this.options = options || marked$3.defaults;
+        this.options.renderer = this.options.renderer || new Renderer();
         this.renderer = this.options.renderer;
         this.renderer.options = this.options;
     }
@@ -1740,9 +1325,9 @@
         );
         this.tokens = src.reverse();
 
-        var out = [];
+        var out = '';
         while (this.next()) {
-            out.push(this.tok());
+            out += this.tok();
         }
 
         return out;
@@ -1775,16 +1360,6 @@
             body += '\n' + this.next().text;
         }
 
-        // return this.inline.output(body);
-
-        // const vnode = this.inline.output(body);
-        // return vnode.text;
-        // return vnodes.map(function (vnode) {
-        //     return vnode.text
-        // }).reduce(function (a, b) {
-        //     return a + b;
-        // });
-
         return this.inline.output(body);
     };
 
@@ -1801,21 +1376,10 @@
                 return this.renderer.hr();
             }
             case 'heading': {
-                // return this.renderer.heading(
-                //     this.inline.output(this.token.text),
-                //     this.token.depth,
-                //     unescape(this.inlineText.output(this.token.text)));
-
-                // var vnode = this.inline.output(this.token.text);
-                // return this.renderer.heading(
-                //     vnode.text,
-                //     this.token.depth,
-                //     unescape(this.inlineText.output(this.token.text)));
-
                 return this.renderer.heading(
                     this.inline.output(this.token.text),
                     this.token.depth,
-                    (this.inlineText.output(this.token.text)));
+                    unescape(this.inlineText.output(this.token.text)));
             }
             case 'code': {
                 return this.renderer.code(this.token.text,
@@ -1823,188 +1387,80 @@
                     this.token.escaped);
             }
             case 'table': {
-                // var header = '',
-                //     body = '',
-                //     i,
-                //     row,
-                //     cell,
-                //     j;
-                //
-                // // header
-                // cell = '';
-                // for (i = 0; i < this.token.header.length; i++) {
-                //     cell += this.renderer.tablecell(
-                //         this.inline.output(this.token.header[i]),
-                //         { header: true, align: this.token.align[i] }
-                //     );
-                // }
-                // header += this.renderer.tablerow(cell);
-                //
-                // for (i = 0; i < this.token.cells.length; i++) {
-                //     row = this.token.cells[i];
-                //
-                //     cell = '';
-                //     for (j = 0; j < row.length; j++) {
-                //         cell += this.renderer.tablecell(
-                //             this.inline.output(row[j]),
-                //             { header: false, align: this.token.align[j] }
-                //         );
-                //     }
-                //
-                //     body += this.renderer.tablerow(cell);
-                // }
-                // return this.renderer.table(header, body);
-
-                var header = [],
-                    body = [],
+                var header = '',
+                    body = '',
                     i,
                     row,
-                    cell = [],
+                    cell,
                     j;
 
                 // header
-                // cell = '';
+                cell = '';
                 for (i = 0; i < this.token.header.length; i++) {
-                    cell.push(
-                        this.renderer.tablecell(
-                            this.inline.output(this.token.header[i]),
-                            { header: true, align: this.token.align[i] }
-                        )
+                    cell += this.renderer.tablecell(
+                        this.inline.output(this.token.header[i]),
+                        { header: true, align: this.token.align[i] }
                     );
                 }
-
-                header.push( this.renderer.tablerow(cell) );
+                header += this.renderer.tablerow(cell);
 
                 for (i = 0; i < this.token.cells.length; i++) {
                     row = this.token.cells[i];
 
-                    cell = [];
+                    cell = '';
                     for (j = 0; j < row.length; j++) {
-                        cell.push(
-                            this.renderer.tablecell(
-                                this.inline.output(row[j]),
-                                { header: false, align: this.token.align[j] }
-                            )
+                        cell += this.renderer.tablecell(
+                            this.inline.output(row[j]),
+                            { header: false, align: this.token.align[j] }
                         );
                     }
 
-                    body.push(
-                        this.renderer.tablerow(cell)
-                    );
+                    body += this.renderer.tablerow(cell);
                 }
                 return this.renderer.table(header, body);
-
             }
             case 'blockquote_start': {
-                // body = '';
-                //
-                // while (this.next().type !== 'blockquote_end') {
-                //     body += this.tok();
-                // }
-                //
-                // return this.renderer.blockquote(body);
+                body = '';
 
-                let body = [];
                 while (this.next().type !== 'blockquote_end') {
-                    body.push( this.tok() );
+                    body += this.tok();
                 }
 
                 return this.renderer.blockquote(body);
-
             }
             case 'list_start': {
-                // body = '';
-                // var ordered = this.token.ordered,
-                //     start = this.token.start;
-                //
-                // while (this.next().type !== 'list_end') {
-                //     body += this.tok();
-                // }
-                //
-                // return this.renderer.list(body, ordered, start);
-
-                let body = [];
+                body = '';
                 var ordered = this.token.ordered,
                     start = this.token.start;
 
                 while (this.next().type !== 'list_end') {
-                    body.push(this.tok());
+                    body += this.tok();
                 }
 
                 return this.renderer.list(body, ordered, start);
-
             }
             case 'list_item_start': {
-                // body = '';
-                // var loose = this.token.loose;
-                //
-                // if (this.token.task) {
-                //     body += this.renderer.checkbox(this.token.checked);
-                // }
-                //
-                // while (this.next().type !== 'list_item_end') {
-                //     body += !loose && this.token.type === 'text'
-                //         ? this.parseText()
-                //         : this.tok();
-                // }
-                //
-                // return this.renderer.listitem(body);
-
-                let body = [];
+                body = '';
                 var loose = this.token.loose;
 
                 if (this.token.task) {
-                    // body += this.renderer.checkbox(this.token.checked);
-                    body.push(
-                        this.renderer.checkbox(this.token.checked)
-                    );
-
-                    body.push(
-                        this.renderer.text(' ')
-                    );
+                    body += this.renderer.checkbox(this.token.checked);
                 }
 
                 while (this.next().type !== 'list_item_end') {
-                    body.push(
-                        !loose && this.token.type === 'text'
+                    body += !loose && this.token.type === 'text'
                         ? this.parseText()
-                        : this.tok()
-                    );
+                        : this.tok();
                 }
 
-                // body = body.map(function (t) {
-                //     return t[0];
-                // }).filter(function (t) {
-                //     return !!t;
-                // });
-                var vnodes = [];
-                for(var i=0;i<body.length;i++) {
-                    if(!body[i]) {
-                        continue;
-                    }
-                    if(!isArray(body[i])){
-                        vnodes.push(body[i]);
-                        continue;
-                    }
-                    for(var j=0;j<body[i].length;j++) {
-                        body[i][j] && vnodes.push(body[i][j]);
-                    }
-                }
-
-                return this.renderer.listitem(vnodes);
+                return this.renderer.listitem(body);
             }
             case 'html': {
                 // TODO parse inline content if parameter markdown=1
                 return this.renderer.html(this.token.text);
             }
             case 'paragraph': {
-                // return this.renderer.paragraph(this.inline.output(this.token.text));
-
-                // var vnodes = this.inline.output(this.token.text);
-                // return this.renderer.paragraph(vnode.text);
-
-                var vnodes = this.inline.output(this.token.text);
-                return this.renderer.paragraph(vnodes);
+                return this.renderer.paragraph(this.inline.output(this.token.text));
             }
             case 'text': {
                 return this.renderer.paragraph(this.parseText());
@@ -2016,7 +1472,7 @@
      * Marked
      */
 
-    function marked$1(src, opt, callback) {
+    function marked$4(src, opt, callback) {
         // throw error in case of non string input
         if (typeof src === 'undefined' || src === null) {
             throw new Error('marked(): input parameter is undefined or null');
@@ -2032,7 +1488,7 @@
                 opt = null;
             }
 
-            opt = merge({}, marked$1.defaults, opt || {});
+            opt = merge({}, marked$4.defaults, opt || {});
 
             var highlight = opt.highlight,
                 tokens,
@@ -2096,11 +1552,11 @@
             return;
         }
         try {
-            if (opt) opt = merge({}, marked$1.defaults, opt);
+            if (opt) opt = merge({}, marked$4.defaults, opt);
             return Parser.parse(Lexer.lex(src, opt), opt);
         } catch (e) {
             e.message += '\nPlease report this to https://github.com/markedjs/marked.';
-            if ((opt || marked$1.defaults).silent) {
+            if ((opt || marked$4.defaults).silent) {
                 return '<p>An error occurred:</p><pre>'
                     + escape(e.message + '', true)
                     + '</pre>';
@@ -2113,37 +1569,37 @@
      * Options
      */
 
-    marked$1.options =
-        marked$1.setOptions = function(opt) {
-            merge(marked$1.defaults, opt);
-            return marked$1;
+    marked$4.options =
+        marked$4.setOptions = function(opt) {
+            merge(marked$4.defaults, opt);
+            return marked$4;
         };
 
-    marked$1.getDefaults = function () {
-        return merge(defaults, {
-            renderer: new Renderer$1()
+    marked$4.getDefaults = function () {
+        return merge(defaults$1, {
+            renderer: new Renderer()
         });
     };
 
-    marked$1.defaults = marked$1.getDefaults();
+    marked$4.defaults = marked$4.getDefaults();
 
     /**
      * Expose
      */
 
-    marked$1.Parser = Parser;
-    marked$1.parser = Parser.parse;
+    marked$4.Parser = Parser;
+    marked$4.parser = Parser.parse;
 
-    marked$1.Renderer = Renderer$1;
-    marked$1.TextRenderer = TextRenderer;
+    marked$4.Renderer = Renderer;
+    marked$4.TextRenderer = TextRenderer;
 
-    marked$1.Lexer = Lexer;
-    marked$1.lexer = Lexer.lex;
+    marked$4.Lexer = Lexer;
+    marked$4.lexer = Lexer.lex;
 
-    marked$1.InlineLexer = InlineLexer;
-    marked$1.inlineLexer = InlineLexer.output;
+    marked$4.InlineLexer = InlineLexer;
+    marked$4.inlineLexer = InlineLexer.output;
 
-    marked$1.parse = marked$1;
+    marked$4.parse = marked$4;
 
     /**
      * marked - a markdown parser
@@ -2151,6 +1607,6 @@
      * https://github.com/markedjs/marked
      */
 
-    return marked$1;
+    return marked$4;
 
-})));
+}));

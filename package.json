@@ -24,15 +24,18 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^3.1.0",
-    "rollup": "^0.65.2",
+    "rollup": "^0.68.0",
     "rollup-plugin-commonjs": "^9.1.6",
     "rollup-plugin-uglify": "^5.0.2",
     "text-loader": "^0.0.1",
-    "webpack": "^4.17.2",
-    "webpack-cli": "^3.1.0"
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.0",
+    "webpack-dev-server": "^3.1.10",
+    "html-webpack-plugin": "^3.2.0"
   },
   "scripts": {
-    "dev": "rollup -c -w",
+    "dev": "webpack-dev-server --config ./examples/webpack.config.js",
+    "dev:rollup": "rollup -c -w",
     "build": "npm run build:rollup",
     "build:rollup": "rollup -c",
     "build:webpack": "webpack -p",

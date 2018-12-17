@@ -2,7 +2,7 @@
 import { uglify } from "rollup-plugin-uglify";
 
 export default {
-    input: 'src/index.js',
+    input: './index.js',
     plugins: [
         // babel({
         //
