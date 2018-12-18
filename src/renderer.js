@@ -2,11 +2,20 @@ import { cleanUrl, escape } from './helper';
 import defaults from './options';
 const marked = { defaults };
 
+function createPostionAttrs(position) {
+    var attrs = '';
+    if(position) {
+        // attrs = ' data-start-line="'+position.start.line+'" '+'data-end-line="'+position.end.line+'"';
+        attrs = ' data-line="'+position.start.line+'-'+position.end.line+'" ';
+    }
+    return attrs;
+}
+
 function Renderer(options) {
     this.options = options || marked.defaults;
 }
 
-Renderer.prototype.code = function(code, infostring, escaped) {
+Renderer.prototype.code = function(code, infostring, escaped, position) {
     var lang = (infostring || '').match(/\S*/)[0];
     if (this.options.highlight) {
         var out = this.options.highlight(code, lang);
@@ -15,14 +24,16 @@ Renderer.prototype.code = function(code, infostring, escaped) {
             code = out;
         }
     }
+    
+    var attrs = createPostionAttrs(position);
 
     if (!lang) {
-        return '<pre><code>'
+        return '<pre'+attrs+'><code>'
             + (escaped ? code : escape(code, true))
             + '</code></pre>';
     }
 
-    return '<pre><code class="'
+    return '<pre'+attrs+'><code class="'
         + this.options.langPrefix
         + escape(lang, true)
         + '">'
@@ -38,21 +49,24 @@ Renderer.prototype.html = function(html) {
     return html;
 };
 
-Renderer.prototype.heading = function(text, level, raw) {
+Renderer.prototype.heading = function(text, level, raw, position) {
+
+    var attrs = createPostionAttrs(position);
+
     if (this.options.headerIds) {
         return '<h'
             + level
             + ' id="'
             + this.options.headerPrefix
             + raw.toLowerCase().replace(/[^\w]+/g, '-')
-            + '">'
+            + '"'+attrs+'>'
             + text
             + '</h'
             + level
             + '>\n';
     }
     // ignore IDs
-    return '<h' + level + '>' + text + '</h' + level + '>\n';
+    return '<h' + level + attrs+ '>' + text + '</h' + level + '>\n';
 };
 
 Renderer.prototype.hr = function() {
@@ -65,8 +79,9 @@ Renderer.prototype.list = function(body, ordered, start) {
     return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
 };
 
-Renderer.prototype.listitem = function(text) {
-    return '<li>' + text + '</li>\n';
+Renderer.prototype.listitem = function(text, position) {
+    var attrs = createPostionAttrs(position);
+    return '<li'+attrs+'>' + text + '</li>\n';
 };
 
 Renderer.prototype.checkbox = function(checked) {
@@ -77,14 +92,17 @@ Renderer.prototype.checkbox = function(checked) {
         + '> ';
 };
 
-Renderer.prototype.paragraph = function(text) {
-    return '<p>' + text + '</p>\n';
+Renderer.prototype.paragraph = function(text, position) {
+    var attrs = createPostionAttrs(position);
+    return '<p'+attrs+'>' + text + '</p>\n';
 };
 
-Renderer.prototype.table = function(header, body) {
+Renderer.prototype.table = function(header, body, position) {
+    var attrs = createPostionAttrs(position);
+
     if (body) body = '<tbody>' + body + '</tbody>';
 
-    return '<table>\n'
+    return '<table'+attrs+'>\n'
         + '<thead>\n'
         + header
         + '</thead>\n'
@@ -152,8 +170,8 @@ Renderer.prototype.image = function(href, title, text) {
     return out;
 };
 
-Renderer.prototype.text = function(text) {
-    return text;
+Renderer.prototype.text = function(text, position) {
+    return '<span>'+text+'</span>';
 };
 
 export default Renderer;

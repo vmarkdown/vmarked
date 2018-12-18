@@ -94,12 +94,14 @@ Parser.prototype.tok = function() {
             return this.renderer.heading(
                 this.inline.output(this.token.text),
                 this.token.depth,
-                unescape(this.inlineText.output(this.token.text)));
+                unescape(this.inlineText.output(this.token.text))
+                ,this.token.position);
         }
         case 'code': {
             return this.renderer.code(this.token.text,
                 this.token.lang,
-                this.token.escaped);
+                this.token.escaped
+                ,this.token.position);
         }
         case 'table': {
             var header = '',
@@ -132,7 +134,7 @@ Parser.prototype.tok = function() {
 
                 body += this.renderer.tablerow(cell);
             }
-            return this.renderer.table(header, body);
+            return this.renderer.table(header, body, this.token.position);
         }
         case 'blockquote_start': {
             body = '';
@@ -168,14 +170,15 @@ Parser.prototype.tok = function() {
                     : this.tok();
             }
 
-            return this.renderer.listitem(body);
+            return this.renderer.listitem(body, this.token.position);
         }
         case 'html': {
             // TODO parse inline content if parameter markdown=1
             return this.renderer.html(this.token.text);
         }
         case 'paragraph': {
-            return this.renderer.paragraph(this.inline.output(this.token.text));
+            return this.renderer.paragraph(this.inline.output(this.token.text)
+                ,this.token.position);
         }
         case 'text': {
             return this.renderer.paragraph(this.parseText());

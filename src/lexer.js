@@ -13,6 +13,8 @@ function Lexer(options) {
     this.options = options || marked.defaults;
     this.rules = block.normal;
 
+    this.line = 1;
+
     if (this.options.pedantic) {
         this.rules = block.pedantic;
     } else if (this.options.gfm) {
@@ -53,6 +55,109 @@ Lexer.prototype.lex = function(src) {
     return this.token(src, true);
 };
 
+function lines(src) {
+
+    if(!src) return;
+
+    for(var i=src.length -1;i>=0;--i){
+        var ch = src[i];
+        if(ch === '\n'){
+            this.tokens.push({
+                type: 'space'
+            });
+        }
+    }
+
+
+}
+
+function createPosition(src) {
+    if(!src) return;
+    // debugger
+
+    var startLine = this.line;
+    // var startColumn = 1;
+    var endLine = this.line;
+    // var endColumn = src.length;
+
+    var isEnd = true;
+    for(var i=src.length -1;i>=0;--i){
+        var ch = src[i];
+        if(ch === '\n'){
+
+            // endColumn--;
+            this.line++;
+
+            if(!isEnd){
+                endLine++;
+            }
+        }
+        else{
+            isEnd = false;
+        }
+    }
+
+    var position = {
+        start: {
+            line: startLine,
+            // column: startColumn
+        },
+        end: {
+            line: endLine,
+            // column: endColumn
+        }
+    };
+
+    return position;
+}
+
+// function createTablePosition(src) {
+//     if(!src || src.length === 0) return;
+//
+//     var startLine = this.line;
+//
+//     // var endLine = this.line;
+//
+//     this.line += src.length;
+//
+//     var endLine = this.line;
+//
+//     var position = {
+//         start: {
+//             line: startLine,
+//             // column: startColumn
+//         },
+//         end: {
+//             line: endLine,
+//             // column: endColumn
+//         }
+//     };
+//
+//     return position;
+// }
+
+function createListItemPosition(src, change) {
+    if(!src) return;
+
+    var startLine = this.line;
+    var endLine = this.line;
+
+    change && (this.line += 1);
+
+    var position = {
+        start: {
+            line: startLine,
+            // column: startColumn
+        },
+        end: {
+            line: endLine,
+            // column: endColumn
+        }
+    };
+
+    return position;
+}
+
 /**
  * Lexing
  */
@@ -75,12 +180,21 @@ Lexer.prototype.token = function(src, top) {
         isordered,
         istask,
         ischecked;
+    
+
 
     while (src) {
+
+
+
         // newline
         if (cap = this.rules.newline.exec(src)) {
             src = src.substring(cap[0].length);
             if (cap[0].length > 1) {
+
+
+                createPosition.call(this, cap[0]);
+
                 this.tokens.push({
                     type: 'space'
                 });
@@ -104,6 +218,7 @@ Lexer.prototype.token = function(src, top) {
         if (cap = this.rules.fences.exec(src)) {
             src = src.substring(cap[0].length);
             this.tokens.push({
+                position: createPosition.call(this, cap[0]),
                 type: 'code',
                 lang: cap[2] ? cap[2].trim() : cap[2],
                 text: cap[3] || ''
@@ -117,13 +232,16 @@ Lexer.prototype.token = function(src, top) {
             this.tokens.push({
                 type: 'heading',
                 depth: cap[1].length,
-                text: cap[2]
+                text: cap[2],
+                position: createPosition.call(this, cap[0])
             });
             continue;
         }
 
         // table no leading pipe (gfm)
         if (top && (cap = this.rules.nptable.exec(src))) {
+
+
             item = {
                 type: 'table',
                 header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
@@ -159,7 +277,9 @@ Lexer.prototype.token = function(src, top) {
         // hr
         if (cap = this.rules.hr.exec(src)) {
             src = src.substring(cap[0].length);
+            // debugger
             this.tokens.push({
+                position: createPosition.call(this, cap[0]),
                 type: 'hr'
             });
             continue;
@@ -194,6 +314,8 @@ Lexer.prototype.token = function(src, top) {
             isordered = bull.length > 1;
 
             listStart = {
+                // position: createPosition.call(this, cap[0]),
+
                 type: 'list_start',
                 ordered: isordered,
                 start: isordered ? +bull : '',
@@ -259,7 +381,9 @@ Lexer.prototype.token = function(src, top) {
                     item = item.replace(/^\[[ xX]\] +/, '');
                 }
 
+                var position = createListItemPosition.call(this, item);
                 t = {
+                    position: position,
                     type: 'list_item_start',
                     task: istask,
                     checked: ischecked,
@@ -273,8 +397,11 @@ Lexer.prototype.token = function(src, top) {
                 this.token(item, false);
 
                 this.tokens.push({
+                    position: position,
                     type: 'list_item_end'
                 });
+
+                createListItemPosition.call(this, item, true);
             }
 
             if (listStart.loose) {
@@ -294,8 +421,10 @@ Lexer.prototype.token = function(src, top) {
 
         // html
         if (cap = this.rules.html.exec(src)) {
+            // debugger
             src = src.substring(cap[0].length);
             this.tokens.push({
+                position: createPosition.call(this, cap[0]),
                 type: this.options.sanitize
                     ? 'paragraph'
                     : 'html',
@@ -322,7 +451,11 @@ Lexer.prototype.token = function(src, top) {
 
         // table (gfm)
         if (top && (cap = this.rules.table.exec(src))) {
+
+
             item = {
+                // position: createTablePosition.call(this, cap),
+                position: createPosition.call(this, cap[0]),
                 type: 'table',
                 header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
                 align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
@@ -370,7 +503,9 @@ Lexer.prototype.token = function(src, top) {
         // top-level paragraph
         if (top && (cap = this.rules.paragraph.exec(src))) {
             src = src.substring(cap[0].length);
+
             this.tokens.push({
+                position: createPosition.call(this, cap[0]),
                 type: 'paragraph',
                 text: cap[1].charAt(cap[1].length - 1) === '\n'
                     ? cap[1].slice(0, -1)
@@ -384,6 +519,7 @@ Lexer.prototype.token = function(src, top) {
             // Top-level should never reach here.
             src = src.substring(cap[0].length);
             this.tokens.push({
+                position: createPosition.call(this, cap[0]),
                 type: 'text',
                 text: cap[0]
             });
