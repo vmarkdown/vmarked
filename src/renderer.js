@@ -69,14 +69,18 @@ Renderer.prototype.heading = function(text, level, raw, position) {
     return '<h' + level + attrs+ '>' + text + '</h' + level + '>\n';
 };
 
-Renderer.prototype.hr = function() {
-    return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
+Renderer.prototype.hr = function(position) {
+    var attrs = createPostionAttrs(position);
+    return this.options.xhtml ? '<hr'+attrs+'/>\n' : '<hr'+attrs+'>\n';
 };
 
-Renderer.prototype.list = function(body, ordered, start) {
+Renderer.prototype.list = function(body, ordered, start, position) {
+    var attrs = createPostionAttrs(position);
+
+    // debugger
     var type = ordered ? 'ol' : 'ul',
         startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
-    return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
+    return '<' + type + startatt + attrs +'>\n' + body + '</' + type + '>\n';
 };
 
 Renderer.prototype.listitem = function(text, position) {
@@ -171,7 +175,8 @@ Renderer.prototype.image = function(href, title, text) {
 };
 
 Renderer.prototype.text = function(text, position) {
-    return '<span>'+text+'</span>';
+    return text;
+    // return '<span>'+text+'</span>';
 };
 
 export default Renderer;

@@ -88,7 +88,7 @@ Parser.prototype.tok = function() {
             return '';
         }
         case 'hr': {
-            return this.renderer.hr();
+            return this.renderer.hr(this.token.position);
         }
         case 'heading': {
             return this.renderer.heading(
@@ -154,7 +154,7 @@ Parser.prototype.tok = function() {
                 body += this.tok();
             }
 
-            return this.renderer.list(body, ordered, start);
+            return this.renderer.list(body, ordered, start, this.token.position);
         }
         case 'list_item_start': {
             body = '';

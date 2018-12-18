@@ -47,7 +47,9 @@ function compile(md) {
 }
 
 async function parse(html) {
+    console.time('parse');
     const file = await processor.process(html);
+    console.timeEnd('parse');
     const vdom = file.contents;
     return vdom;
 }
@@ -69,6 +71,9 @@ async function process(md) {
 (async()=>{
 
     console.log(marked.lexer(md));
+
+    console.log('===============');
+
     await process(md);
     // setTimeout(async function () {
     //     await render(md.replace(/Markdown/g,'======='));

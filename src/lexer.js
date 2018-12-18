@@ -136,13 +136,70 @@ function createPosition(src) {
 //     return position;
 // }
 
-function createListItemPosition(src, change) {
-    if(!src) return;
+function createListItemPosition(tokens, change) {
+    if(!tokens || tokens.length === 0) {
+        return;
+    }
 
     var startLine = this.line;
     var endLine = this.line;
 
-    change && (this.line += 1);
+    // change && (this.line += 1);
+
+    if(change) {
+        // debugger
+        this.line ++;
+        // for(var i=src.length -1;i>=0;--i){
+        //     var ch = src[i];
+        //     if(ch === '\n'){
+        //         this.line++;
+        //         break;
+        //     }
+        // }
+    }
+    else{
+
+        startLine = -1;
+        endLine = -1;
+        var list_item_num = 0;
+
+        for(var i=tokens.length -1;i>=0;--i){
+            var token = tokens[i];
+
+            if(token.type === 'list_item_start'){
+                if(list_item_num === 0){
+                    break;
+                }
+                list_item_num--;
+                // break;
+            }
+
+            if(token.type === 'list_item_end'){
+                list_item_num++;
+            }
+
+            if(token.position) {
+                if(startLine<0){
+                    startLine = token.position.start.line;
+                }
+                else if(token.position.start.line < startLine) {
+                    startLine = token.position.start.line;
+                }
+
+                if(endLine<0){
+                    endLine = token.position.end.line;
+                }
+                else if(token.position.start.line > endLine) {
+                    endLine = token.position.end.line;
+                }
+            }
+
+
+        }
+
+
+    }
+
 
     var position = {
         start: {
@@ -156,6 +213,67 @@ function createListItemPosition(src, change) {
     };
 
     return position;
+}
+
+function createListPosition(tokens) {
+
+    if(!tokens || tokens.length === 0) {
+        return;
+    }
+
+    var startLine = -1;
+    var endLine = -1;
+
+    var list_start = null;
+    var list_num = 0;
+    for(var i=tokens.length -1;i>=0;--i){
+        var token = tokens[i];
+
+        if(token.type === 'list_start'){
+            if(list_num === 0){
+                list_start = token;
+                break;
+            }
+            list_num--;
+        }
+
+        if(token.type === 'list_end'){
+            list_num++;
+        }
+
+        // if(token.type === 'list_item_end'){
+        if(token.position){
+            if(startLine<0){
+                startLine = token.position.start.line;
+            }
+            else if(token.position.start.line < startLine) {
+                startLine = token.position.start.line;
+            }
+
+            if(endLine<0){
+                endLine = token.position.end.line;
+            }
+            else if(token.position.start.line > endLine) {
+                endLine = token.position.end.line;
+            }
+        }
+    }
+
+    var position = {
+        start: {
+            line: startLine,
+        },
+        end: {
+            line: endLine,
+        }
+    };
+
+    if(list_start){
+        list_start.position = position;
+    }
+
+    return position;
+
 }
 
 /**
@@ -190,11 +308,11 @@ Lexer.prototype.token = function(src, top) {
         // newline
         if (cap = this.rules.newline.exec(src)) {
             src = src.substring(cap[0].length);
-            if (cap[0].length > 1) {
-
-
+            if (cap[0].length >= 1) {
                 createPosition.call(this, cap[0]);
+            }
 
+            if (cap[0].length > 1) {
                 this.tokens.push({
                     type: 'space'
                 });
@@ -206,6 +324,7 @@ Lexer.prototype.token = function(src, top) {
             src = src.substring(cap[0].length);
             cap = cap[0].replace(/^ {4}/gm, '');
             this.tokens.push({
+                position: createPosition.call(this, cap),
                 type: 'code',
                 text: !this.options.pedantic
                     ? rtrim(cap, '\n')
@@ -288,7 +407,6 @@ Lexer.prototype.token = function(src, top) {
         // blockquote
         if (cap = this.rules.blockquote.exec(src)) {
             src = src.substring(cap[0].length);
-
             this.tokens.push({
                 type: 'blockquote_start'
             });
@@ -309,6 +427,8 @@ Lexer.prototype.token = function(src, top) {
 
         // list
         if (cap = this.rules.list.exec(src)) {
+
+
             src = src.substring(cap[0].length);
             bull = cap[2];
             isordered = bull.length > 1;
@@ -381,9 +501,9 @@ Lexer.prototype.token = function(src, top) {
                     item = item.replace(/^\[[ xX]\] +/, '');
                 }
 
-                var position = createListItemPosition.call(this, item);
+                // var position = createListItemPosition.call(this, item);
                 t = {
-                    position: position,
+                    // position: position,
                     type: 'list_item_start',
                     task: istask,
                     checked: ischecked,
@@ -393,15 +513,20 @@ Lexer.prototype.token = function(src, top) {
                 listItems.push(t);
                 this.tokens.push(t);
 
+                // debugger
                 // Recurse.
                 this.token(item, false);
+
+                var position = createListItemPosition.call(this, this.tokens);
 
                 this.tokens.push({
                     position: position,
                     type: 'list_item_end'
                 });
 
-                createListItemPosition.call(this, item, true);
+                // debugger
+
+                createListItemPosition.call(this, cap[i], i < l-1);
             }
 
             if (listStart.loose) {
@@ -413,8 +538,11 @@ Lexer.prototype.token = function(src, top) {
             }
 
             this.tokens.push({
+                position: createListPosition.call(this, this.tokens),
                 type: 'list_end'
             });
+
+            // debugger
 
             continue;
         }
@@ -493,6 +621,7 @@ Lexer.prototype.token = function(src, top) {
         if (cap = this.rules.lheading.exec(src)) {
             src = src.substring(cap[0].length);
             this.tokens.push({
+                position: createPosition.call(this, cap[0]),
                 type: 'heading',
                 depth: cap[2] === '=' ? 1 : 2,
                 text: cap[1]

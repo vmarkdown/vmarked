@@ -28,9 +28,18 @@
         }
 
 
-        [data-start-line] , [data-line]{
-            background-color: #ff020226!important;
+        /*[data-start-line] , [data-line]{*/
+            /*background-color: #ff020226!important;*/
+        /*}*/
+
+        [data-line]:nth-of-type(odd){
+            background-color: rgba(0, 136, 22, 0.33) !important;
         }
+
+        [data-line]:nth-of-type(even){
+            background-color: rgba(255, 0, 0, 0.33) !important;
+        }
+
 
 
     </style>
