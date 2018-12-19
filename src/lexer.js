@@ -276,6 +276,59 @@ function createListPosition(tokens) {
 
 }
 
+function createBlockquotePosition(tokens) {
+
+    if(!tokens || tokens.length === 0) {
+        return;
+    }
+
+    var startLine = -1;
+    var endLine = -1;
+    var num = 0;
+    for(var i=tokens.length -1;i>=0;--i){
+        var token = tokens[i];
+
+        if(token.type === 'blockquote_start'){
+            if(num === 0){
+                break;
+            }
+            num--;
+        }
+
+        if(token.type === 'blockquote_end'){
+            num++;
+        }
+
+        if(token.position){
+            if(startLine<0){
+                startLine = token.position.start.line;
+            }
+            else if(token.position.start.line < startLine) {
+                startLine = token.position.start.line;
+            }
+
+            if(endLine<0){
+                endLine = token.position.end.line;
+            }
+            else if(token.position.start.line > endLine) {
+                endLine = token.position.end.line;
+            }
+        }
+    }
+
+    var position = {
+        start: {
+            line: startLine,
+        },
+        end: {
+            line: endLine,
+        }
+    };
+
+    return position;
+
+}
+
 /**
  * Lexing
  */
@@ -422,6 +475,7 @@ Lexer.prototype.token = function(src, top) {
             this.token(cap, top);
 
             this.tokens.push({
+                position: createBlockquotePosition.call(this, this.tokens),
                 type: 'blockquote_end'
             });
 

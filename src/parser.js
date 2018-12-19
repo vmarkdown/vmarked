@@ -143,7 +143,7 @@ Parser.prototype.tok = function() {
                 body += this.tok();
             }
 
-            return this.renderer.blockquote(body);
+            return this.renderer.blockquote(body, this.token.position);
         }
         case 'list_start': {
             body = '';

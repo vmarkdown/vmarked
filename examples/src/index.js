@@ -64,20 +64,20 @@ function render(vdom) {
 async function process(md) {
     console.time('all');
     const html = compile(md);
-    const vdom = await parse(html);
-    render(vdom);
+    // const vdom = await parse(html);
+    // render(vdom);
+    document.getElementById('app').innerHTML = html;
     console.timeEnd('all');
 }
 (async()=>{
 
-    console.log(marked.lexer(md));
-
-    console.log('===============');
-
+    // console.log(marked.lexer(md));
+    // console.log('===============');
     await process(md);
-    // setTimeout(async function () {
-    //     await render(md.replace(/Markdown/g,'======='));
-    // }, 3000);
+    setTimeout(async function () {
+        // await render(md.replace(/Markdown/g,'======='));
+        await process(md.replace(/的/g,'======='));
+    }, 5000);
 })();
 
 

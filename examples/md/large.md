@@ -4734,9 +4734,2038 @@ context 虽然不被建议使用，但在一些流行库中却非常常见，例
 
 
 
+# 1. 摘要
+
+日期选择器作为基础组件重要不可或缺的一员，大家已经快习惯它一成不变的样子，输入框+日期选择弹出层。但到业务中，这种墨守成规的样子真的能百分百契合业务需求吗。这篇文章从多个网站的日期选择场景出发，企图归纳出日期选择器的最佳实践。这篇文章对移动端的日期选择暂无涉猎，都是PC端，列举出通用场景，每个类型日期选择器需要考虑的设计。
+文章链接：Designing The Perfect Date And Time Picker
+感谢本期评论官 @黄子毅 @流形  @王亮    @赵阳     @不知名的花瓣工程师
+# 2. 设计原则
+
+## 2.1 通用设计
+1）明确需求，是实现日期选择、日期区间选择、时间选择
+
+2）用户选中日期后是否需要自动触发下一步？尤其是在某些固定业务流程中
+
+3）日期选择器是否是最佳的日期选择方法？如果提供预定义的日期选择按钮是不是更快呢？
+
+4）如何避免展示不可用日期？
+
+5）是否需要根据上下文自动定位？ 适用于生日选择场景。
+
+## 2.2 输入框设计
+1）用户是否可以自定义输入日期，还是只能通过点击选择程序给出的日期？有时候直接输入的效率明显高于点击选择，在很多银行流水查询的场景中就提供自定义输入。
+
+2）用户自定义输入如何保证日期格式正确性？
+
+3）是否需要提供预设场景输入？ 比如昨天，三天前，七天前，30天前？像很多数据分析场景，分析师会关注数据周期，比如流量的周环比，月环比，年环比。
+
+4）是否需要包含默认值？如果有默认，应该是什么？像google flight 根据用户历史数据提供默认值，临近节假日默认填充节假日。同时像有些数据场景，数据存在延迟，需要默认提供T-1/T-2 ，避免用户选择当天。
+
+5）当用户激活输入框时，是否保留默认值？
+
+6）是否提供重置按钮？
+
+7）是否提供『前一项』『现在』『后一项』导航？这个设计点我第一次看到，专门附图说明。
+
+![](https://pic3.zhimg.com/v2-cd71b6e05dec1c801794415816b6369a_b.png)
+
+## 2.3 日期弹出层设计
+1）理想状态下，任何日期选择都应该在三步之内完成
+
+2）日期选择弹出层的触发方式？ 是点输入框就还是点日期小图标？
+
+3）默认情况下，展示多少周、月、天？
+
+4）周的定义是周一到周日 还是  周日到周六？
+
+5）如何提示当前时间和当前时间？
+
+6）是否需要提供『前一项』『现在』『后一项』导航？如果提供，选择天、月、年的场景下如何展示？
+
+7）提示用户最关心的信息，比如 价格、公共假期，可采用背景色、点标记
+
+8）是否用户点击非弹出层自动关闭弹出层？是否需要提供关闭按钮？
+
+9）是否可以不和输入框联动？
+
+10）用户可以重置选中的日期吗？
+
+
+## 2.4 日期区间设计
+1）理想状态下，任何日期区间选择需要在六步之内完成
+
+2）用户选中后是否立刻做背景色提示？
+
+3）当用户选择时，区间是否需要随着用户动作改变？比如用户hover时，动态改变选中区间。
+
+4）是否提供快捷键切换 日、月、年选择？
+
+5）是分成两个日期选择器还是采用区间形式？
+
+6）如何去除某些特殊时间点？ 比如春节、节假日。
+
+
+## 2.5 时间选择设计
+1）最简单的方法是竖直的日期，水平的时间选择
+
+2）更有用的是先提供日期还是时间选择？ 时间选择可以作为一个过滤项，移除某些不可用的日期，这个也很有用。
+
+3）提供最常使用的时间片段，并提供快捷键选择。
+
+# 3. 文章中亮点设计
+
+## 3.1 google flight
+![](https://pic4.zhimg.com/v2-2cb10cf0f88fc046d32482e8fe0cd837_b.png)
+
+这个案例在最小的范围内提供用户找出最优选择。虽然第一眼看到这个方法，我懵了一秒，但仔细一看发现这种展现方法完美的给出了各种组合。
+
+## 3.2 春夏秋冬
+![](https://pic2.zhimg.com/v2-d3250f633f8ff1a075279fbfbf43cfb9_b.png)
+
+这个案例另辟蹊径增加了季节的概念，在某些旅游、机票类业务场景季节是非常必要的概念，提供超出月更粗粒度的日期范围选择。
+
+## 3.3 枚举选择时间
+![](https://pic4.zhimg.com/v2-e2d05d6a438b19d5acc7b6a2db6d8d1f_b.png)
+
+使用一系列的按钮代替时间选择器，比如像我们的作息时间表，大部分是把时间划分成有规律的时间段供用户选择，固化用户选择。
+
+## 3.4 对话式交互
+
+![](https://pic1.zhimg.com/v2-cd4874c5dc98505c56b05dbd3193fa78_b.gif)
+
+采用与用户交互的方式选择日期，如果今后应用上AI，单纯的日期选择器是不是会消失不见呢？..
+## 3.5  特殊标识周末
+![](https://pic1.zhimg.com/v2-d8410bede19d7bd4c212ad216ebd0770_b.png)
+在机票、旅行场景中，周末是大家最有可能出行的时间点，采用竖线划分的方式着重标注提醒。
+
+# 4. 总结
+
+![](https://pic3.zhimg.com/v2-ec840145feb22eeac76e5a0503828436_b.png)
+
+总得来说，日期选择器是一个业务组件，虽然现有很多组件库把它纳入UI基础组件。但在每个不通的业务场景和需求下的展现形式、交互都会有所有不同。首先一定一定要明确确定需要日期选择器的场景，尤其是与日期强关联的业务，比如机票定价、日程安排，结合到日期选择器中更直观，提高用户对信息的检索效率。满足用户需求场景的同时，尽量减少用户操作链路。
+
+看到最后点个赞呗，给你比小心心 ❤ ~~
 
 
 
 
 
+
+
+
+Apple
+:   Pomaceous fruit of plants of the genus Malus in
+    the family Rosaceae.
+
+Orange
+:   The fruit of an evergreen tree of the genus Citrus.
+
+
+
+Here's a definition list:
+
+apples
+  : Good for making applesauce.
+
+oranges
+  : Citrus!
+
+tomatoes
+  : There's no "e" in tomatoe.
+
+本期精读的文章是：[The-Best-Frontend-JavaScript-Interview-Questions](https://performancejs.com/post/hde6d32/The-Best-Frontend-JavaScript-Interview-Questions-%28written-by-a-Frontend-Engineer%29)
+
+讨论前端面试哪些问题，以及如何面试。
+
+# 1 引言
+
+<img src="assets/19/logo.png" width="500" alt="logo" />
+
+又到了招聘的季节，如何为自己的团队找到真正优秀的人才？问哪些问题更合适？我们简单总结一把。
+
+# 2 内容概要
+
+[The-Best-Frontend-JavaScript-Interview-Questions](https://performancejs.com/post/hde6d32/The-Best-Frontend-JavaScript-Interview-Questions-%28written-by-a-Frontend-Engineer%29) 从 概念 - 算法 coding - 调试 - 设计 这 4 步全面了解候选人的基本功。
+
+# 3 精读
+
+本精读由 [ascoders](https://github.com/ascoders) [camsong](https://github.com/camsong) [jasonslyvia](https://github.com/jasonslyvia) 讨论而出。
+
+网络技术发展非常迅速，前端变化尤为快，对优秀人才的面试方式在不同时期会有少许不同。
+
+### 整体套路
+
+在面试之前，第一步要询问自己，是否对当前岗位的职责、要求有清晰的认识？不知道自己岗位要招什么样的人，也无法组织好面试题。
+
+认真阅读简历，这是对候选人起码的尊重，同时也是对自己的负责。阅读简历是为了计划面试流程，不应该对所有候选人都准备相同的问题。
+
+具体流程我们一般会通过：
+
+1. 开场白
+2. 候选人自我介绍
+3. 面试
+4. 附加信息
+5. 结束
+
+开场白是最重要的，毕竟候选人如果拒绝了本次面试，后面的流程都不会存在。其次，通过候选人自我介绍，了解简历中你所疑惑的地方。简历是为了突出重点，快速判断是否基本匹配岗位要求，一旦确认了面试，全面了解候选人经验是对双方的负责。接下来重点讨论面试过程。
+
+### 开放性问题
+
+面试的目的是挖掘对方的优点，而不是拿面试官自己的知识点与对方知识点做交集，看看能否匹配上 80%。但受主观因素影响，又不宜询问太多开放性问题，因此开放问题很讲究技巧。
+
+正如上面所说，我推荐以开放性问题开场，这样便于了解候选人的经历、熟悉哪些技术点，便于后面的技术提问。如果开场就以准备好的题目展开车轮战，容易引起候选人心里紧张，同时我们问的问题不一定是候选人所在行的，技术问题不是每一个都那么重要，很多时候我们只看到了候选人的冰山一角，但此时气氛已经尴尬，很多时候会遗漏优秀人才。
+
+开放性问题最好基于行为面试法询问（Star法则）：
+
+- Situation: 场景 - 当时是怎样的场景
+- Task: 任务 - 当时的任务是什么
+- Action: 我采取了怎样的行动
+- Result: 达到了什么样的结果
+
+行为面试法的好处在于还原当时场景，不但让面试官了解更多细节，也开拓了面试者的思维，让面试过程更加高效、全面。
+
+举一个例子，比如考察候选人是否聪明，star 法则会这样询问：
+
+> 在刚才的项目中，你提到了公司业务发展很快，人手不够，你是如何应对的呢？
+
+相比不推荐的 “假设性问题” 会如此提问：
+
+> 假如让你学习一个新技术，你会如何做？
+
+更不推荐的是 “引导性问题”：
+
+> 你觉得自己聪明吗？
+
+相比于 star 法则，其他方式的提问，不但让候选人觉得突兀，不好回答，而且容易被主观想法带歪，助长了面试中投机的气氛。至于对 star 法则都精心编排的候选人，我还没有遇到过，如果遇到了肯定会劝他转行做演员 —— 开玩笑的，会通过后续技术问题甄别候选人是否有真本领。
+
+### 技术问题
+
+亘古不变的问题就是考察基本功了，然而基本功随着技术的演进会有所调整，Html Css Js 这三个维度永远是不变的，但旧的 api 是否考察，取决于是否有最新 api 代替了它，如果有，在浏览器兼容性达标的基础上，可以只考察替代的 api，当然了解历史会更好。
+
+> 比如 `proxy` 与 `defineProperty` 需要结合考察，因为 `proxy` 不兼容任何 IE 浏览器，候选人需要全面了解这两种用法。
+
+变的地方在于对候选人使用技术框架的提问。在开放性问题中已经做好了铺垫，那无论候选人时以什么框架开发的，或者不使用框架开发，最好按照候选人的使用习惯提问。比如候选人使用 Angular 框架的开发经验较多，就重点考察对 Angular 框架设计、实现原理是否了解，实际使用中是否遇到过问题，以及对问题的解决方法，这也回到了 star 法则。
+
+如果候选人能总结出比如当前流行的 Vue React Angular 这三个框架核心实现思想的异同，就是加分项。
+
+对与老旧的问题，比如 jquery 的问题，也会问与设计思想相关的问题，比如候选人不知道 `$.delegate`，也不知道其已被 `$on` 在 Jq3.0 取代，这不代表候选人能力不行，最多说明候选人比较年轻。此时应该通过引导的方式，让其思考如何优化 `$.bind` 方法的性能，通过逐步引导，判断候选人的思维活跃度有多强。
+
+### 如何防止被套路
+
+把面试官经验抛出来，怕不怕让候选人有所准备呢？ —— 说实在的，几乎所有候选人都是有准备的，也不差这一篇文章。
+
+以上是开玩笑。
+
+面试主要是看候选人基础有多扎实，和思维能力。基础主要指的是，候选人提前了解了多少前端相关知识，比如对闭包的理解，对原生 api 的理解？如果候选人没接触过这两个知识点，会有两种情况：
+
+- **这些知识点看完需要多久？如果是闭包和原生api的定义与用法，候选人这方面的缺陷可以通过5分钟来弥补，那么这种问题到底想考什么？我们真的在乎这5分钟看文档的时间吗？此时应该了解候选人对知识点的感悟，或者学习方式，因为这两点的差距可能几年都无法弥补**
+- **如果候选人学习能力非常强，但几乎所有前端知识点都不了解，弥补完大概一共要花 1000*5 分钟，这时候量变引发质变了，是不是说明候选人本身对技术的热情存在问题？**
+
+通过了基础问题还远远不够。甚至当问一个复杂的问题的时候，如果候选人瞬间把答案完美流畅表达出来，说明这个问题基本上白问了。
+
+**技术面更应该考察候选人的思考过程和基于此来表达出的技术能力和项目经验。**如果候选人基础没有落下太多，思维足够灵活，在过往项目中主动学习，并主导解决过项目问题，说明已经比较优秀了，我们招的每一人都应当拥有激情与学习能力。
+
+所以，当问到候选人不了解的知识点时，通过引导并挖掘出候选人拥有多少问题解决能力，才是最大的权重项，如果这个问题候选人也提前准备了，那说明准备对了。
+
+### 非技术相关
+
+最后考察候选人的发展潜力与工作态度，我们一般通过询问简单的算法问题，进一步了解候选人是否对技术真正感兴趣，而不只是对前端工程感兴趣。同时，算法问题也考察候选人解决抽象问题的能力，或者让候选人设计一个组件，通过对组件需求的不断升级，考察候选人是否能及时给出解决方案。
+
+最后时工作态度，首先会考察人品，对不懂的知识点装懂是违背诚信的行为，任何团队都不会要的。同时，**不正视自己技术存在的盲点，将是技术发展的最大阻碍**。不过这里也不怕被候选人套路，如果全部都回答不懂那也不用考虑了。
+
+# 3 总结
+
+由于经验不多，只能编出这些体会，希望求职者多一些真诚，少一些套路，就一定会找到满意的工作。
+
+> 讨论地址是：[精读《最佳前端面试题》及前端面试官技巧 · Issue #27 · dt-fe/weekly](https://github.com/dt-fe/weekly/issues/27)
+
+> 如果你想参与讨论，请[点击这里](https://github.com/dt-fe/weekly)，每周都有新的主题，每周五发布。
+
+
+
+
+---
+title: Markdown Syntax
+taxonomy:
+    category: docs
+---
+
+Let's face it: Writing content for the Web is tiresome. WYSIWYG editors help alleviate this task, but they generally result in horrible code, or worse yet, ugly web pages.
+
+**Markdown** is a better way to write **HTML**, without all the complexities and ugliness that usually accompanies it.
+
+Some of the key benefits are:
+
+1. Markdown is simple to learn, with minimal extra characters, so it's also quicker to write content.
+2. Less chance of errors when writing in markdown.
+3. Produces valid XHTML output.
+4. Keeps the content and the visual display separate, so you cannot mess up the look of your site.
+5. Write in any text editor or Markdown application you like.
+6. Markdown is a joy to use!
+
+John Gruber, the author of Markdown, puts it like this:
+
+> The overriding design goal for Markdown’s formatting syntax is to make it as readable as possible. The idea is that a Markdown-formatted document should be publishable as-is, as plain text, without looking like it’s been marked up with tags or formatting instructions. While Markdown’s syntax has been influenced by several existing text-to-HTML filters, the single biggest source of inspiration for Markdown’s syntax is the format of plain text email.
+> -- <cite>John Gruber</cite>
+
+
+Grav ships with built-in support for [Markdown](http://daringfireball.net/projects/markdown/) and [Markdown Extra](https://michelf.ca/projects/php-markdown/extra/). You must enable **Markdown Extra** in your `system.yaml` configuration file.
+
+Without further delay, let us go over the main elements of Markdown and what the resulting HTML looks like:
+
+!! <i class="fa fa-bookmark"></i> Bookmark this page for easy future reference!
+
+## Headings
+
+Headings from `h1` through `h6` are constructed with a `#` for each level:
+
+```markdown
+# h1 Heading
+## h2 Heading
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading
+```
+
+Renders to:
+
+# h1 Heading
+## h2 Heading
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading
+
+HTML:
+
+```html
+<h1>h1 Heading</h1>
+<h2>h2 Heading</h2>
+<h3>h3 Heading</h3>
+<h4>h4 Heading</h4>
+<h5>h5 Heading</h5>
+<h6>h6 Heading</h6>
+```
+
+<br>
+<br>
+<br>
+
+## Comments
+
+Comments should be HTML compatible
+
+```html
+<!--
+This is a comment
+-->
+```
+Comment below should **NOT** be seen:
+
+<!--
+This is a comment
+-->
+
+<br>
+<br>
+<br>
+
+## Horizontal Rules
+
+The HTML `<hr>` element is for creating a "thematic break" between paragraph-level elements. In markdown, you can create a `<hr>` with any of the following:
+
+* `___`: three consecutive underscores
+* `---`: three consecutive dashes
+* `***`: three consecutive asterisks
+
+renders to:
+
+___
+
+---
+
+***
+
+
+<br>
+<br>
+<br>
+
+
+## Body Copy
+
+Body copy written as normal, plain text will be wrapped with `<p></p>` tags in the rendered HTML.
+
+So this body copy:
+
+```markdown
+Lorem ipsum dolor sit amet, graecis denique ei vel, at duo primis mandamus. Et legere ocurreret pri, animal tacimates complectitur ad cum. Cu eum inermis inimicus efficiendi. Labore officiis his ex, soluta officiis concludaturque ei qui, vide sensibus vim ad.
+```
+renders to this HTML:
+
+```html
+<p>Lorem ipsum dolor sit amet, graecis denique ei vel, at duo primis mandamus. Et legere ocurreret pri, animal tacimates complectitur ad cum. Cu eum inermis inimicus efficiendi. Labore officiis his ex, soluta officiis concludaturque ei qui, vide sensibus vim ad.</p>
+```
+
+A **line break** can be done with 2 spaces followed by 1 return.
+
+
+<br>
+<br>
+<br>
+
+
+## Inline HTML
+
+If you need a certain HTML tag (with a class) you can simply use HTML:
+
+```
+Paragraph in Markdown.
+
+<div class="class">
+</div>
+
+Paragraph in Markdown.
+```
+
+
+<br>
+<br>
+<br>
+
+
+## Emphasis
+
+### Bold
+For emphasizing a snippet of text with a heavier font-weight.
+
+The following snippet of text is **rendered as bold text**.
+
+```markdown
+**rendered as bold text**
+```
+renders to:
+
+**rendered as bold text**
+
+and this HTML
+
+```html
+<strong>rendered as bold text</strong>
+```
+
+### Italics
+For emphasizing a snippet of text with italics.
+
+The following snippet of text is _rendered as italicized text_.
+
+```markdown
+_rendered as italicized text_
+```
+
+renders to:
+
+_rendered as italicized text_
+
+and this HTML:
+
+```html
+<em>rendered as italicized text</em>
+```
+
+
+### strikethrough
+In GFM (GitHub flavored Markdown) you can do strikethroughs.
+
+```markdown
+~~Strike through this text.~~
+```
+Which renders to:
+
+~~Strike through this text.~~
+
+HTML:
+
+```html
+<del>Strike through this text.</del>
+```
+
+<br>
+<br>
+<br>
+
+
+## Blockquotes
+For quoting blocks of content from another source within your document.
+
+Add `>` before any text you want to quote.
+
+```markdown
+> **Fusion Drive** combines a hard drive with a flash storage (solid-state drive) and presents it as a single logical volume with the space of both drives combined.
+```
+
+Renders to:
+
+> **Fusion Drive** combines a hard drive with a flash storage (solid-state drive) and presents it as a single logical volume with the space of both drives combined.
+
+and this HTML:
+
+```html
+<blockquote>
+  <p><strong>Fusion Drive</strong> combines a hard drive with a flash storage (solid-state drive) and presents it as a single logical volume with the space of both drives combined.</p>
+</blockquote>
+```
+
+Blockquotes can also be nested:
+
+```markdown
+> Donec massa lacus, ultricies a ullamcorper in, fermentum sed augue.
+Nunc augue augue, aliquam non hendrerit ac, commodo vel nisi.
+>> Sed adipiscing elit vitae augue consectetur a gravida nunc vehicula. Donec auctor
+odio non est accumsan facilisis. Aliquam id turpis in dolor tincidunt mollis ac eu diam.
+```
+
+Renders to:
+
+> Donec massa lacus, ultricies a ullamcorper in, fermentum sed augue.
+Nunc augue augue, aliquam non hendrerit ac, commodo vel nisi.
+>> Sed adipiscing elit vitae augue consectetur a gravida nunc vehicula. Donec auctor
+odio non est accumsan facilisis. Aliquam id turpis in dolor tincidunt mollis ac eu diam.
+
+
+<br>
+<br>
+<br>
+
+## Notices
+
+! The old mechanism for notices overriding the block quote syntax (`>>>`) has been deprecated.  Notices are now handled via a dedicated plugin called [Markdown Notices](https://github.com/getgrav/grav-plugin-markdown-notices)
+
+<br>
+<br>
+<br>
+
+## Lists
+
+### Unordered
+A list of items in which the order of the items does not explicitly matter.
+
+You may use any of the following symbols to denote bullets for each list item:
+
+```markdown
+* valid bullet
+- valid bullet
++ valid bullet
+```
+
+For example
+
+```markdown
++ Lorem ipsum dolor sit amet
++ Consectetur adipiscing elit
++ Integer molestie lorem at massa
++ Facilisis in pretium nisl aliquet
++ Nulla volutpat aliquam velit
+  - Phasellus iaculis neque
+  - Purus sodales ultricies
+  - Vestibulum laoreet porttitor sem
+  - Ac tristique libero volutpat at
++ Faucibus porta lacus fringilla vel
++ Aenean sit amet erat nunc
++ Eget porttitor lorem
+```
+Renders to:
+
++ Lorem ipsum dolor sit amet
++ Consectetur adipiscing elit
++ Integer molestie lorem at massa
++ Facilisis in pretium nisl aliquet
++ Nulla volutpat aliquam velit
+  - Phasellus iaculis neque
+  - Purus sodales ultricies
+  - Vestibulum laoreet porttitor sem
+  - Ac tristique libero volutpat at
++ Faucibus porta lacus fringilla vel
++ Aenean sit amet erat nunc
++ Eget porttitor lorem
+
+And this HTML
+
+```html
+<ul>
+  <li>Lorem ipsum dolor sit amet</li>
+  <li>Consectetur adipiscing elit</li>
+  <li>Integer molestie lorem at massa</li>
+  <li>Facilisis in pretium nisl aliquet</li>
+  <li>Nulla volutpat aliquam velit
+    <ul>
+      <li>Phasellus iaculis neque</li>
+      <li>Purus sodales ultricies</li>
+      <li>Vestibulum laoreet porttitor sem</li>
+      <li>Ac tristique libero volutpat at</li>
+    </ul>
+  </li>
+  <li>Faucibus porta lacus fringilla vel</li>
+  <li>Aenean sit amet erat nunc</li>
+  <li>Eget porttitor lorem</li>
+</ul>
+```
+
+### Ordered
+
+A list of items in which the order of items does explicitly matter.
+
+```markdown
+1. Lorem ipsum dolor sit amet
+2. Consectetur adipiscing elit
+3. Integer molestie lorem at massa
+4. Facilisis in pretium nisl aliquet
+5. Nulla volutpat aliquam velit
+6. Faucibus porta lacus fringilla vel
+7. Aenean sit amet erat nunc
+8. Eget porttitor lorem
+```
+Renders to:
+
+1. Lorem ipsum dolor sit amet
+2. Consectetur adipiscing elit
+3. Integer molestie lorem at massa
+4. Facilisis in pretium nisl aliquet
+5. Nulla volutpat aliquam velit
+6. Faucibus porta lacus fringilla vel
+7. Aenean sit amet erat nunc
+8. Eget porttitor lorem
+
+And this HTML:
+
+```html
+<ol>
+  <li>Lorem ipsum dolor sit amet</li>
+  <li>Consectetur adipiscing elit</li>
+  <li>Integer molestie lorem at massa</li>
+  <li>Facilisis in pretium nisl aliquet</li>
+  <li>Nulla volutpat aliquam velit</li>
+  <li>Faucibus porta lacus fringilla vel</li>
+  <li>Aenean sit amet erat nunc</li>
+  <li>Eget porttitor lorem</li>
+</ol>
+```
+
+**TIP**: If you just use `1.` for each number, Markdown will automatically number each item. For example:
+
+```markdown
+1. Lorem ipsum dolor sit amet
+1. Consectetur adipiscing elit
+1. Integer molestie lorem at massa
+1. Facilisis in pretium nisl aliquet
+1. Nulla volutpat aliquam velit
+1. Faucibus porta lacus fringilla vel
+1. Aenean sit amet erat nunc
+1. Eget porttitor lorem
+```
+
+Renders to:
+
+1. Lorem ipsum dolor sit amet
+2. Consectetur adipiscing elit
+3. Integer molestie lorem at massa
+4. Facilisis in pretium nisl aliquet
+5. Nulla volutpat aliquam velit
+6. Faucibus porta lacus fringilla vel
+7. Aenean sit amet erat nunc
+8. Eget porttitor lorem
+
+
+<br>
+<br>
+<br>
+
+
+## Code
+
+### Inline code
+Wrap inline snippets of code with `` ` ``.
+
+```markdown
+In this example, `<section></section>` should be wrapped as **code**.
+```
+
+Renders to:
+
+In this example, `<section></section>` should be wrapped with **code**.
+
+HTML:
+
+```html
+<p>In this example, <code>&lt;section&gt;&lt;/section&gt;</code> should be wrapped with <strong>code</strong>.</p>
+```
+
+### Indented code
+
+Or indent several lines of code by at least four spaces, as in:
+
+<pre>
+  // Some comments
+  line 1 of code
+  line 2 of code
+  line 3 of code
+</pre>
+
+Renders to:
+
+    // Some comments
+    line 1 of code
+    line 2 of code
+    line 3 of code
+
+HTML:
+
+```html
+<pre>
+  <code>
+    // Some comments
+    line 1 of code
+    line 2 of code
+    line 3 of code
+  </code>
+</pre>
+```
+
+
+### Block code "fences"
+
+Use "fences"  ```` ``` ```` to block in multiple lines of code.
+
+<pre>
+``` markup
+Sample text here...
+```
+</pre>
+
+
+```
+Sample text here...
+```
+
+HTML:
+
+```html
+<pre>
+  <code>Sample text here...</code>
+</pre>
+```
+
+### Syntax highlighting
+
+GFM, or "GitHub Flavored Markdown" also supports syntax highlighting. To activate it, simply add the file extension of the language you want to use directly after the first code "fence", ` ```js `, and syntax highlighting will automatically be applied in the rendered HTML. For example, to apply syntax highlighting to JavaScript code:
+
+<pre>
+```js
+grunt.initConfig({
+  assemble: {
+    options: {
+      assets: 'docs/assets',
+      data: 'src/data/*.{json,yml}',
+      helpers: 'src/custom-helpers.js',
+      partials: ['src/partials/**/*.{hbs,md}']
+    },
+    pages: {
+      options: {
+        layout: 'default.hbs'
+      },
+      files: {
+        './': ['src/templates/pages/index.hbs']
+      }
+    }
+  }
+};
+```
+</pre>
+
+Renders to:
+
+```js
+grunt.initConfig({
+  assemble: {
+    options: {
+      assets: 'docs/assets',
+      data: 'src/data/*.{json,yml}',
+      helpers: 'src/custom-helpers.js',
+      partials: ['src/partials/**/*.{hbs,md}']
+    },
+    pages: {
+      options: {
+        layout: 'default.hbs'
+      },
+      files: {
+        './': ['src/templates/pages/index.hbs']
+      }
+    }
+  }
+};
+```
+
+!!! For syntax highlighting to work, the [Highlight plugin](https://github.com/getgrav/grav-plugin-highlight) needs to be installed and enabled. It in turn utilizes a jquery plugin, so jquery needs to be loaded in your theme too.
+
+<br>
+<br>
+<br>
+
+
+
+## Tables
+Tables are created by adding pipes as dividers between each cell, and by adding a line of dashes (also separated by bars) beneath the header. Note that the pipes do not need to be vertically aligned.
+
+
+```markdown
+| Option | Description |
+| ------ | ----------- |
+| data   | path to data files to supply the data that will be passed into templates. |
+| engine | engine to be used for processing templates. Handlebars is the default. |
+| ext    | extension to be used for dest files. |
+```
+
+Renders to:
+
+| Option | Description |
+| ------ | ----------- |
+| data   | path to data files to supply the data that will be passed into templates. |
+| engine | engine to be used for processing templates. Handlebars is the default. |
+| ext    | extension to be used for dest files. |
+
+And this HTML:
+
+```html
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>data</td>
+      <td>path to data files to supply the data that will be passed into templates.</td>
+    </tr>
+    <tr>
+      <td>engine</td>
+      <td>engine to be used for processing templates. Handlebars is the default.</td>
+    </tr>
+    <tr>
+      <td>ext</td>
+      <td>extension to be used for dest files.</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+### Right aligned text
+
+Adding a colon on the right side of the dashes below any heading will right align text for that column.
+
+```markdown
+| Option | Description |
+| ------:| -----------:|
+| data   | path to data files to supply the data that will be passed into templates. |
+| engine | engine to be used for processing templates. Handlebars is the default. |
+| ext    | extension to be used for dest files. |
+```
+
+| Option | Description |
+| ------:| -----------:|
+| data   | path to data files to supply the data that will be passed into templates. |
+| engine | engine to be used for processing templates. Handlebars is the default. |
+| ext    | extension to be used for dest files. |
+
+
+<br>
+<br>
+<br>
+
+
+## Links
+
+### Basic link
+
+```markdown
+[Assemble](http://assemble.io)
+```
+
+Renders to (hover over the link, there is no tooltip):
+
+[Assemble](http://assemble.io)
+
+HTML:
+
+```html
+<a href="http://assemble.io">Assemble</a>
+```
+
+
+### Add a title
+
+```markdown
+[Upstage](https://github.com/upstage/ "Visit Upstage!")
+```
+
+Renders to (hover over the link, there should be a tooltip):
+
+[Upstage](https://github.com/upstage/ "Visit Upstage!")
+
+HTML:
+
+```html
+<a href="https://github.com/upstage/" title="Visit Upstage!">Upstage</a>
+```
+
+### Named Anchors
+
+Named anchors enable you to jump to the specified anchor point on the same page. For example, each of these chapters:
+
+```markdown
+# Table of Contents
+  * [Chapter 1](#chapter-1)
+  * [Chapter 2](#chapter-2)
+  * [Chapter 3](#chapter-3)
+```
+will jump to these sections:
+
+```markdown
+## Chapter 1 <a id="chapter-1"></a>
+Content for chapter one.
+
+## Chapter 2 <a id="chapter-2"></a>
+Content for chapter one.
+
+## Chapter 3 <a id="chapter-3"></a>
+Content for chapter one.
+```
+**NOTE** that specific placement of the anchor tag seems to be arbitrary. They are placed inline here since it seems to be unobtrusive, and it works.
+
+
+<br>
+<br>
+<br>
+
+
+## Images
+Images have a similar syntax to links but include a preceding exclamation point.
+
+```markdown
+![Minion](http://octodex.github.com/images/minion.png)
+```
+![Minion](http://octodex.github.com/images/minion.png)
+
+or
+```markdown
+![Alt text](http://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
+```
+![Alt text](http://octodex.github.com/images/stormtroopocat.jpg "The Stormtroopocat")
+
+Like links, Images also have a footnote style syntax
+
+```markdown
+![Alt text][id]
+```
+![Alt text][id]
+
+With a reference later in the document defining the URL location:
+
+[id]: http://octodex.github.com/images/dojocat.jpg  "The Dojocat"
+
+
+    [id]: http://octodex.github.com/images/dojocat.jpg  "The Dojocat"
+
+
+
+
+
+---
+title: Pages
+taxonomy:
+    category: docs
+process:
+    twig: true
+---
+
+In Grav-speak, **Pages** are the fundamental building blocks of your site. They are how you write content and provide navigation in the Grav system.
+
+Combining content and navigation ensures that the system is intuitive to use for even the most inexperienced of content authors. However, this system, in conjunction with powerful taxonomy capabilities, is still powerful enough to handle complex content requirements.
+
+Grav natively supports **3 types of Pages** that allow you to create a rich selection of web content. Those types are:
+
+![Grav Page Types](page-types.png)
+
+#### Regular Page
+
+![Standard Page](content-standard.jpg?classes=shadow)
+
+A regular Page is generally a single page such as a **blog post**, **contact form**, **error page** etc. This is the most common type of page that you will create. By default a Page is considered a regular page unless you tell Grav otherwise.
+
+When you download and install the **Core Grav** package, you are greeted by a standard page. We covered creating a simple regular Page in the [Basic Tutorial](/basics/basic-tutorial).
+
+#### Listing Page
+
+![Listing Page](content-listing.jpg?classes=shadow)
+
+This is an extension of a regular Page. This is a page that has a reference to a collection of pages.
+
+The most straightforward approach to setting this up is to create **child-pages** below the Listing Page. An example of this would be a **blog listing page**, where you would display a summary list of blog posts that exist as child-pages.
+
+There is also some configuration settings to **control the order** of the listing as well as a **limit on the number of items**, and whether or not **pagination** should be enabled.
+
+!! A sample **Blog Skeleton** using a **Listing Page** can be found in the [Grav Downloads](https://getgrav.org/downloads/skeletons).
+
+#### Modular Page
+
+![Modular Page](content-modular.jpg?classes=shadow)
+
+A Modular Page is a special type of listing page because it builds a **single page** from its **child-pages**. This allows for the ability to build very complex **one-page layouts** from Modules. This is accomplished by constructing the **Modular Page** from multiple **Module-folders** found in the page's primary folder.
+
+!! A sample **One-Page Skeleton** using a **Modular Page** can be found in the [Grav Downloads](https://getgrav.org/downloads/skeletons).
+
+Each of these page types follows the same basic structure, so before we can get into the nitty-gritty of each type, we must explain how pages in Grav are constructed.
+
+!! A Module, because it is intended to be part of another page, is inherently not a page you can reach directly via a URL. Because of this, all modular pages are by default set as **non-routable**.
+
+## Folders
+
+All content pages are located in the `/user/pages` folder. Each **Page** should be placed in its own folder.
+
+!! Folder names should also be valid **slugs**. Slugs are entirely lowercase, with accented characters replaced by letters from the Latin alphabet and whitespace characters replaced by a dash or an underscore, to avoid being encoded.
+
+Grav understands that any integer value followed by a period will be solely for ordering, and is removed internally in the system. For example, if you have a folder named `01.home`, Grav will treat this folder as `home`, but will ensure that with default ordering, it comes before `02.blog`.
+
+![Grav Folder Example](page-folders.png)
+
+Your site must have an entry-point so that it knows where to go when you point your browser to the root of your site. For example if you were to enter `http://yoursite.com` in your browser, by default Grav expects an alias `home/`, but you can override the home-location by changing the `home.alias` option in the [Grav configuration file](/basics/grav-configuration).
+
+**Module-folders** are identified by an underscore (`_`) before the folder name. This is a special folder type that is intended to be used only with **modular content**.  These are **not routable** and **not visible** in the navigation. An example of a Module-folder would be a folder such as `user/pages/01.home/_header`. Home is configured as a **modular page** and would be constructed from the `_header`, `_features`, and `_body` Modules.
+
+The textual name of each folder defaults to the _slug_ that the system uses as part of the URL. For example if you have a folder such as `/user/pages/02.blog`, the slug for this page would default to `blog`, and the full URL would be `http://yoursite.com/blog`. A blog item page, located in `/user/pages/02.blog/blog-item-5` would be accessible via `http://yoursite.com/blog/blog-item-5`.
+
+If no number is provided as a prefix of the folder name, the page is considered to be **invisible**, and will not show up in the navigation. An example of this would be the `error` page in the above folder-structure.
+
+!! This can actually be overridden in the page itself by setting the [visible parameter](/content/headers#visible) in the headers.
+
+## Ordering
+
+When dealing with collections, there are several options available to control how folders are ordered. The most important option is set in the `content.order.by` of the page configuration settings. The options are:
+
+| Ordering     | Details                                                                                                                                              |
+| :----------  | :----------                                                                                                                                          |
+| **default**  | The order based on the file system, i.e. `01.home` before `02.advark`                                                                                |
+| **title**    | The order is based on the title as defined in each page                                                                                              |
+| **basename** | The order is based on the alphabetic folder without numeric order                                                                                    |
+| **date**     | The order based on the date as defined in each page                                                                                                  |
+| **modified** | The order based on the modified timestamp of the page                                                                                                |
+| **folder**   | The order based on the folder name with any numerical prefix, i.e. `01.`, removed                                                                    |
+| **header.x** | The order based on any page header field. i.e. `header.taxonomy.year`. Also a default can be added via a pipe. i.e. `header.taxonomy.year|2015` |
+| **manual**   | The order based on the `order_manual` variable                                                                                                       |
+| **random**   | The order is randomized                                                                                                                              |
+
+You can specifically define a manual order by providing a list of options to the `content.order.custom` configuration setting. This will work in conjunction with the `content.order.by` because it first tries to order the pages manually, but any pages not specified in the manual order, will fall through and be ordered by the ordering provided.
+
+!! You can override the **default behavior** for folder ordering and the direction in which the ordering occurs by setting the `pages.order.dir` and the `pages.order.by` options in the [Grav system configuration file](/basics/grav-configuration).
+
+## Page File
+
+Within the page-folder, we create the actual page-file. The filename should end with `.md` to indicate that it is a Markdown-formatted file. Technically, it is Markdown with YAML FrontMatter, which sounds impressive but really is not a big deal at all. We will cover the details of the file-structure soon.
+
+The important thing to understand is the name of the file directly references the name of the theme's template file that will be used to render. The standard name for the main template file is **default**, so the file would be named `default.md`.
+
+You can, of course, name your file whatever you like, for example: `document.md`, which would make Grav look for a template file in the theme that matches, such as the **document.html.twig** Twig-template.
+
+!! This behavior can be overridden in the page by setting the [template parameter](/content/headers#template) in the headers.
+
+An example page file could look like this:
+
+```
+---
+title: Page Title
+taxonomy:
+    category: blog
+---
+# Page Title
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque porttitor eu
+felis sed ornare. Sed a mauris venenatis, pulvinar velit vel, dictum enim. Phasellus
+ac rutrum velit. **Nunc lorem** purus, hendrerit sit amet augue aliquet, iaculis
+ultricies nisl. Suspendisse tincidunt euismod risus, _quis feugiat_ arcu tincidunt
+eget. Nulla eros mi, commodo vel ipsum vel, aliquet congue odio. Class aptent taciti
+sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque
+velit orci, laoreet at adipiscing eu, interdum quis nibh. Nunc a accumsan purus.
+```
+
+The settings between the pair of `---` markers are known as the YAML FrontMatter, and it is comprised of basic YAML settings for the page.
+
+In this example, we are explicitly setting the title, as well the taxonomy to **blog** so we can filter it later.  The content after the second `---` is the actual content that will be compiled and rendered as HTML on your site.  This is written in [Markdown](/content/markdown), which will be covered in detail in a future chapter. Just know that the `#`, `**`, and `_` markers translate to **heading 1**, **bold**, and **italics**, respectively.
+
+!! Ensure you save your `.md` files as `UTF-8`-encoded files. This will ensure they work with language-specific special characters.
+
+### Summary Size and Separator
+
+There is a setting in the `site.yaml` file that lets you define a default size (in characters) of the summary that can be used via `page.summary()` to display a summary or synopsis of the page. This is particularly useful for blogs where you want to have a listing that contains just summary information, and not the full page content.
+
+By default, this value is `300` characters. You can override this in your `user/config/site.yaml` file, but an even more useful approach is to use the manual **summary separator** also known as the **summary delimiter**: `===`.
+
+You need to ensure you put this in your content with blank lines **above** and **below**. For example:
+
+```
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat.
+
+===
+
+Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+```
+
+This will use the text above the separator when referenced by `page.summary()` and the full page content when referenced by `page.content()`.
+
+!! When using `page.summary()`, the summary size setting will be used if the separator is not found in the page content.
+
+### Finding other Pages
+
+Grav has a useful feature that allows you to find another page and perform actions on that page. This can be accomplished with the `find()`-method that simply takes the **route** and returns a new Page-object.
+
+This allows you to perform a wide variety of functionality from any page on your Grav site. For example, you may want to provide a list of all current projects on a particular project detail page:
+
+{% verbatim %}
+```
+# All Projects
+<ul>
+{% for p in page.find('/projects').children if p != page %}
+<li><a href="{{p.url}}">{{ p.title }}</a></li>
+{% endfor %}
+</ul>
+```
+{% endverbatim %}
+
+In the next section, we will continue to dig into the specifics of a Page in detail.
+
+### contentMeta
+
+Referencing pages and content is straightforward, but what about the content that doesn't get rendered on the front-end along with the rest of the page?
+
+When Grav reads page content, it stores this content in cache. That way, the next time the page is rendered it doesn't have to read all the content from the `.md` file. Generally, this content is all rendered to the front-end. However, there are instances where having some additional data stored alongside the page in the cache is useful.
+
+This is where `contentMeta()` comes in. We use ContentMeta in our [Shortcode](https://github.com/getgrav/grav-plugin-shortcode-core)-plugin to [retrieve sections from other pages](https://github.com/getgrav/grav-plugin-shortcode-core#sections-from-other-pages) using shortcodes. For example:
+
+{% verbatim %}
+```
+<div id="author">{{ page.find('/my/custom/page').contentMeta.shortcodeMeta.shortcode.section.author }}</div>
+```
+{% endverbatim %}
+
+We used this in Shortcode Core to store CSS and JS assets that the shortcode on the page requires, however this feature can be used to store just about any data structure you need.
+
+
+
+
+---
+title: Markdown syntax for files, widgets, and wikis in Azure DevOps
+titleSuffix: Azure DevOps
+description: Learn how to share information, add tables & mathematical notation using markdown within pull requests, README files, dashboards, and wikis
+ms.prod: devops
+ms.technology: devops-collab
+ms.assetid: 43D2156E-2E20-42B8-B816-43E95CB479C5
+ms.manager: douge
+ms.author: chcomley
+author: chcomley
+ms.reviewer: sancha
+ms.topic: reference
+monikerRange: '>= tfs-2015'
+ms.date: 12/11/2018
+---
+
+# Syntax guidance for markdown usage
+
+[!INCLUDE [temp](../../_shared/version-ts-tfs-2015-2016.md)]
+
+In this article you'll find some basic Markdown syntax guidance as well as specific guidance for using Markdown in Azure DevOps features. You can use both common [Markdown conventions](http://daringfireball.net/projects/markdown/syntax) and [GitHub-flavored extensions](https://help.github.com/articles/github-flavored-markdown/).
+
+Having the right guidance at the right time is critical to success. To support your team or contributors to your project, use [markdown](https://en.wikipedia.org/wiki/Markdown) to add rich formatting, tables, and images to your project pages, README files, dashboards, and pull request comments.
+
+You can provide guidance in the following areas using markdown:
+
+::: moniker range=">= azdevserver-2019"
+
+- [Project wiki (provisioned wiki)](add-edit-wiki.md)
+- [Publish code as wiki](publish-repo-to-wiki.md)
+- [Markdown widget added to a dashboard](../../report/dashboards/add-markdown-to-dashboard.md)
+- [Project vision page or Welcome pages](project-vision-status.md)
+- [Repository README files](../../repos/git/create-a-readme.md)
+- [Pull request comments](../../repos/git/pull-requests.md)
+- [Definition of Done (Kanban board)](../../boards/boards/definition-of-done.md)
+
+::: moniker-end
+
+::: moniker range="tfs-2018"
+
+- [Project wiki](add-edit-wiki.md)
+- [Markdown widget added to a dashboard](../../report/dashboards/add-markdown-to-dashboard.md)
+- [Project vision page or Welcome pages](project-vision-status.md)
+- [Repository README files](../../repos/git/create-a-readme.md)
+- [Pull request comments](../../repos/git/pull-requests.md)
+- [Definition of Done (Kanban board)](../../boards/boards/definition-of-done.md)
+
+> [!NOTE]
+> Rich markdown rendering in code repositories is supported for TFS 2018.2 and later versions. You can create rich README.md files in the code repositories. The markdown rendering of the MD files in code repositories supports HTML tags, block quotes, emojis, image resizing, and mathematical formulas. There is parity in markdown rendering in Wiki and MD files in code.
+
+::: moniker-end
+
+::: moniker range="tfs-2017"
+
+- [Markdown widget added to a dashboard](../../report/dashboards/add-markdown-to-dashboard.md)
+- [Project vision page or Welcome pages](project-vision-status.md)
+- [Repository README files](../../repos/git/create-a-readme.md)
+- [Pull request comments](../../repos/git/pull-requests.md)
+- [Definition of Done (Kanban board)](../../boards/boards/definition-of-done.md)
+
+> [!NOTE]
+> With TFS 2017.1, welcome pages, the markdown widget on team dashboards, and the Definition of Done on Kanban boards will no longer support file links in their markdown. As a workaround, you can include your file link as text in the Markdown.
+
+::: moniker-end
+
+::: moniker range="tfs-2015"
+
+- [Markdown widget added to a dashboard](../../report/dashboards/add-markdown-to-dashboard.md)
+- [Project vision page or Welcome pages](project-vision-status.md)
+- [Repository README files](../../repos/git/create-a-readme.md)
+- [Definition of Done (Kanban board)](../../boards/boards/definition-of-done.md)
+
+::: moniker-end
+
+## Basic format elements
+
+### Headers
+
+Structure your comments using headers. Headers segment longer comments, making them easier to read.
+
+Start a line with a hash character `#` to set a heading. Organize your remarks with subheadings by starting a line with additional hash characters, for example `####`. Up to six levels of headings are supported.
+
+**Example:**
+```
+# This is a H1 header
+## This is a H2 header
+### This is a H3 header
+#### This is a H4 header
+##### This is a H5 header
+```
+
+**Result:**
+
+<img src="_img/markdown-guidance/mrkdown-headers.png" alt="Web portal, Headers 1 through 5" style="border: 1px solid #C3C3C3;" />
+
+### Paragraphs and line breaks
+
+Make your text easier to read by breaking it up with paragraphs or line breaks.
+
+::: moniker range=">= tfs-2018"
+In pull request comments, press Enter to insert a line break and begin text on a new line.
+
+In a Markdown file or widget, enter two spaces prior to the line break to begin a new paragraph, or enter two line breaks consecutively to begin a new paragraph.
+
+::: moniker-end
+
+::: moniker range="tfs-2017"
+In pull request comments, press Enter to insert a line break and begin text on a new line. In a Markdown file or widget, enter two spaces prior to the line break to begin a new paragraph, or enter two line breaks consecutively to begin a new paragraph.
+::: moniker-end
+
+::: moniker range="tfs-2015"
+In a Markdown file or widget, enter two spaces prior to the line break to begin a new paragraph, or enter two line breaks consecutively to begin a new paragraph.
+::: moniker-end
+
+**Example - pull request comment:**
+
+<pre>
+Add lines between your text with the Enter key.
+This spaces your text better and makes it easier to read.
+</pre>
+
+**Result:**
+Add lines between your text with the Enter key.
+This spaces your text better and makes it easier to read.
+
+**Example - markdown file or widget:**
+
+<pre>
+Add two spaces prior to the end of the line.(space, space)
+This adds space in between paragraphs.
+</pre>
+
+**Result:**
+Add two spaces prior to the end of the line.
+
+This adds space in between paragraphs.
+
+### Block quotes
+
+Quote previous comments or text to set context for your comment or text.
+
+Quote single lines of text be putting a `>` before the text. Use multiple `>` characters to nest quoted text.
+Quote blocks of lines of text by using the same level of `>` across multiple lines.
+
+**Example:**
+
+<pre>
+> Single line quote
+>> Nested
+>> multiple line
+>> quote
+</pre>
+
+**Result:**
+
+![quoting in markdown](_img/markdown-guidance/markdown_quote2.jpg)
+
+### Horizontal rules
+
+Add a horizontal rule by adding a new line that's just a series of dashes `---`. There must be a blank line above the line containing the `---`.
+
+**Example:**
+
+<div id="do_not_render">
+<pre>
+above
+&nbsp;
+&#45;&#45;&#45;&#45;
+below
+</pre>
+</div>
+
+**Result:**
+
+above
+
+-----
+
+below
+
+### Emphasis (bold, italics, strikethrough)
+
+You can emphasize text by applying bold, italics, or strikethrough to characters:
+
+- To apply italics: surround the text with an asterisk `*` or underscore `_`
+- To apply bold: surround the text with double asterisks `**`.
+- To apply strikethrough: surround the text with double tilde characters `~~`.
+
+Combine these elements to apply multiple emphasis to text.
+
+::: moniker range=">= azdevserver-2019"
+> [!NOTE]
+> There is no markdown syntax that supports underlining text. Within a wiki page, you can use the HTML `<u>` tag to generate underlined text. For example, `<u>underlined text</u>` will yield <u>underlined text`</u>.
+::: moniker-end
+
+::: moniker range="tfs-2018"
+> [!NOTE]
+> There is no markdown syntax that supports underlining text. Within a wiki page in TFS 2018.2 and later versions, you can use the HTML `<u>` tag to generate underlined text. For example, `<u>underlined text</u>` will yield <u>underlined text`</u>.
+::: moniker-end
+
+::: moniker range=">= tfs-2015 <= tfs-2017"
+> [!NOTE]
+> There is no markdown syntax that supports underlining text.
+::: moniker-end
+
+**Example:**
+
+<pre>
+Use _emphasis_ in comments to express **strong** opinions and point out ~~corrections~~
+**_Bold, italizied text_**
+**~~Bold, strike-through text~~**
+</pre>
+
+<br/>
+**Result:**
+Use _emphasis_ in comments to express **strong** opinions and point out <s>corrections</s>
+**_Bold, italizied text_**
+**~~Bold, strike-through text~~**
+
+### Code highlighting
+
+Highlight suggested code segments using code highlight blocks.
+To indicate a span of code, wrap it with three backtick quotes (<code>&#96;&#96;&#96;</code>) on a new line at both the start and end of the block. To indicate code inline, wrap it with one backtick quote (<code>&#96;</code>).
+
+**Example:**
+
+<pre>&#96;&#96;&#96;
+$ sudo npm install vsoagent-installer -g
+&#96;&#96;&#96;
+</pre>
+
+<br/>
+**Result:**
+```
+$ sudo npm install vsoagent-installer -g
+```
+<br/>
+**Example:**
+
+<pre>
+To install the Microsoft Cross Platform Build & Release Agent, run the following: &#96;$ sudo npm install vsoagent-installer -g&#96;.
+</pre>
+
+<br/>
+**Result:**
+To install the Microsoft Cross Platform Build & Release Agent run the following: `$ sudo npm install vsoagent-installer`.
+
+<br/>
+Within a markdown file, text with four spaces at the beginning of the line automatically converts to a code block.
+
+Set a language identifier for the code block to enable syntax highlighting for any of the [supported languages](http://highlightjs.readthedocs.io/en/latest/css-classes-reference.html#language-names-and-aliases).
+
+<pre>
+``` language
+code
+```
+</pre>
+
+<br/>
+**Additional examples:**
+
+<pre>
+``` js
+const count = records.length;
+```
+</pre>
+
+``` js
+const count = records.length;
+```
+
+<br/>
+<pre>
+``` csharp
+Console.WriteLine("Hello, World!");
+```
+</pre>
+
+``` csharp
+Console.WriteLine("Hello, World!");
+```
+
+## YAML tags
+
+Any file that contains a YAML block in a Wiki is processed by a table with one head and one row. The YAML block must be the first thing in the file and must take the form of valid YAML set between triple-dashed lines. It supports all basic datatypes, lists, and objects as values. The syntax is supported in wiki, code file preview.
+
+Basic example:
+
+```
+tag: post
+title: Hello world
+```
+
+![YAML tag, basic example](_img/wiki/yaml_basic_example.png)
+
+Tags with list:
+```
+tags:
+- post
+- code
+- web
+title: Hello world
+```
+
+![YAML tags with list example](_img/wiki/yaml_tags_with_list.png)
+
+## Tables
+
+Organize structured data with tables. Tables are especially useful for describing function parameters, object methods, and other data that has
+a clear name to description mapping. You can format tables in pull requests, wiki, and markdown files such as README files and markdown widgets.
+
+- Place each table row on its own line
+- Separate table cells using the pipe character `|`
+- The first two lines of a table set the column headers and the alignment of elements in the table
+- Use colons (`:`) when dividing the header and body of tables to specify column alignment (left, center, right)
+- To start a new line, use the HTML break tag (`<br/>`) (Works within a Wiki but not elsewhere)
+- Make sure to end each row with a CR or LF.
+- A blank space is required before and after workitem or PR mentions inside a table cell.
+
+**Example:**
+
+```
+| Heading 1 | Heading 2 | Heading 3 |
+|-----------|:-----------:|-----------:|
+| Cell A1 | Cell A2 | Cell A3 |
+| Cell B1 | Cell B2 | Cell B3<br/>second line of text |
+```
+
+<br/>
+**Result:**
+
+| Heading 1 | Heading 2 | Heading 3 |
+|-----------|:---------:|-----------:|
+| Cell A1 | Cell A2 | Cell A3 |
+| Cell B1 | Cell B2 | Cell B3<br/>second line of text |
+
+## Lists
+
+Organize related items with lists. You can add ordered lists with numbers, or unordered lists with just bullets.
+
+Ordered lists start with a number followed by a period for each list item. Unordered lists start with a `-`. Begin each list item on a new line. In a Markdown file or widget, enter two spaces prior to the line break to begin a new paragraph, or enter two line breaks consecutively to begin a new paragraph.
+
+### Ordered or numbered lists
+
+**Example:**
+```
+1. First item.
+2. Second item.
+3. Third item.
+```
+
+**Result:**
+1. First item.
+2. Second item.
+3. Third item.
+
+### Bullet lists
+
+**Example:**
+
+<pre>
+- Item 1
+- Item 2
+- Item 3
+</pre>
+
+**Result:**
+
+- Item 1
+- Item 2
+- Item 3
+
+### Nested lists
+
+**Example:**
+<pre>
+1. First item.
+   - Item 1
+   - Item 2
+   - Item 3
+1. Second item.
+   - Nested item 1
+   - Nested item 2
+   - Nested item 3
+</pre>
+
+**Result:**
+
+1. First item.
+	- Item 1
+	- Item 2
+	- Item 3
+2. Second item.
+	- Nested item 1
+	- Nested item 2
+	- Nested item 3
+
+## Links
+
+In pull request comments and wikis, HTTP and HTTPS URLs are automatically formatted as links. Also, within pull requests, you can link to work items by typing the # key and a work item ID, and then choosing the work item from the list.
+
+You can escape auto suggestion of work items by prefixing # with a backslash (`\`). E.g. This can be useful if you want to use # for color hex codes.
+
+In markdown files and widgets, you can set text hyperlinks for your URL using the standard markdown link syntax:
+
+```
+[Link Text](Link URL)
+```
+When linking to another Markdown page in the same Git or TFVC repository, the link target can be a relative path or an absolute path in the repository.
+
+**Supported links for Welcome pages:**
+
+<ul>
+<li>Relative path: ```[text to display](./target.md)```  </li>
+<li>Absolute path in Git: ```[text to display](/folder/target.md)``` </li>
+<li>Absolute path in TFVC: ```[text to display]($/project/folder/target.md)```</li>
+<li>URL: ```[text to display](http://address.com)```  </li>
+</ul>
+<p>**Supported links for [Markdown widget](../../report/dashboards/widget-catalog.md#markdown-widget):**</p>
+<ul>
+<li>URL: ```[text to display](http://address.com)```  </li>
+</ul>
+**Supported links for Wiki:**
+<ul>
+<li>Absolute path of Wiki pages: ```[text to display](/parent-page/child-page)``` </li>
+<li>URL: ```[text to display](http://address.com)```  </li>
+</ul>
+
+> [!NOTE]
+> Links to documents on file shares using `file://` are not supported on TFS 2017.1 and later versions. This restriction has been implemented for security purposes.
+>
+>For information on how to specify relative links from a Welcome page or Markdown widget, see [Source control relative links](#relative-links).
+
+**Example:**
+<pre>
+&#91;C# language reference](https://msdn.microsoft.com/library/618ayhy6.aspx)
+</pre>
+
+**Result:**
+
+[C# language reference](https://msdn.microsoft.com/library/618ayhy6.aspx)
+
+::: moniker range=">= tfs-2018"
+
+<a id="link-work-items">  </a>
+
+### Link to work items from a Wiki page
+
+Simply enter the pound sign (`#`) and enter a work item ID.
+
+::: moniker-end
+
+::: moniker range="tfs-2018"
+> [!NOTE]
+> This feature is available with TFS 2018.2 and later versions.
+::: moniker-end
+
+<a id="relative-links">  </a>
+
+### Source control relative links
+
+Links to source control files are interpreted differently depending on whether you specify them in a Welcome page or a Markdown widget. The system interprets relative links as follows:
+
+- **Welcome page:** relative to the root of the source control repository in which the welcome page exists
+- **Markdown widget:**  relative to the team project collection URL base.
+
+For example:
+
+| Welcome page  | Markdown widget equivalent  |
+|--------------------|-----------------------------------|
+| /BuildTemplates/AzureContinuousDeploy.11.xaml |/DefaultCollection/Fabrikam Fiber/_versionControl#path=$/Tfvc Welcome/BuildTemplates/AzureContinuousDeploy.11.xaml|
+| ./page-2.md |/DefaultCollection/Fabrikam Fiber/_versionControl#path=$/Tfvc Welcome/page-2.md |
+
+### Anchor links
+
+Within Markdown files, anchor IDs are assigned to all headings when rendered as HTML. The ID is the heading text, with the spaces replaced by dashes (-) and all lower case. In general, the following conventions:
+
+- Punctuation marks and leading white spaces within a file name are ignored
+- Upper case letters are  converted to lower
+- Spaces between letters are converted to dashes (-).
+
+**Example:**
+
+<pre>
+###Link to a heading in the page
+</pre>
+
+<br/>
+**Result:**
+
+The syntax for an anchor link to a section...
+
+<pre>
+[Link to a heading in the page](#link-to-a-heading-in-the-page)
+</pre>
+<br/>
+The ID is all lower case, and the link is case sensitive, so be sure to use lower case, even though the heading itself uses upper case.
+
+You can also reference headings within another Markdown file:
+
+<pre>
+[text to display](./target.md#heading-id)
+</pre>
+
+<br/>
+In wiki, you can also reference heading in another page:
+
+<pre>
+[text to display](/page-name#section-name)
+</pre>
+
+<a name="images"> </a>
+
+## Images
+
+Add images and animated GIFs to your pull request comments, markdown files, or wiki pages to highlight issues or just to liven the discussion.
+
+Use the following syntax to add an image: <div id="do_not_render"><pre>&#33;&#91;Text](URL)</pre></div> The text in the brackets describes the image being linked and the URL points to the image location.
+
+**Example:**
+
+<pre>
+![Illustration to use for new users](https://docs.microsoft.com/media/illustrations/bcs-user-management-add-customer-1.svg)
+</pre>
+
+<br/>
+**Result:**
+
+![Illustration of linked image](https://docs.microsoft.com/media/illustrations/bcs-user-management-add-customer-1.svg)
+
+The path to the image file can be a relative path or the absolute path in Git or TVFC, just like the path to another Markdown file in a link.
+<ul>
+<li>Relative path:<br/> ```![Image alt text](./image.png)``` </li>
+<li>Absolute path in Git:<br/> ```![Image alt text](/_img/markdown-guidance/image.png)``` </li>
+<li>Absolute path in TFVC:<br/> ```![Image alt text]($/project/folder/_img/markdown-guidance/image.png)```  </li>
+<li>Resize image:<br/> ```![Image alt text]($/project/folder/_img/markdown-guidance/image.png =WIDTHxHEIGHT)```  </li>
+</ul>
+
+> [!NOTE]
+> The syntax to support image resizing is only supported in pull requests and the Wiki.
+
+::: moniker range=">= tfs-2017"
+
+## Checklist or task list
+
+Lightweight task lists are a great way to track progress on a list of todos as a pull request creator or reviewer in the PR description or in a wiki page. Click the Markdown toolbar to get started or apply the format to selected text.
+
+You can Use `[ ]` or `[x]` to support checklists. You need to precede the checklist with either `-<space>` or `1.<space>` (any numeral).
+
+**Example - Apply the task list markdown to a higlighted list**
+
+> [!div class="mx-imgBorder"]
+> ![Apply markdown task list format to a highlighted list in a PR](_img/markdown-guidance/checklist-pr-apply.png)
+
+Once you've added a task list, you can simply check the boxes to mark items as completed. These are expressed and stored within the comment as [ ] and [x] in Markdown.
+
+> [!div class="mx-imgBorder"]
+> ![Apply markdown task list format to a highlighted list in a PR](_img/markdown-guidance/checklist-pr-applied-check.png)
+
+**Example - Format a list as a task list**
+
+<pre>
+- [ ] A
+- [ ] B
+- [ ] C
+- [x] A
+- [x] B
+- [x] C
+
+</pre>
+
+<br/>
+**Result:**
+
+<img src="_img/markdown-guidance/markdown-checklists.png" alt="Checklists" style="border: 1px solid #C3C3C3;" />
+
+> [!NOTE]
+> A checklist within a table cell isn't supported.
+
+::: moniker-end
+
+::: moniker range=">= tfs-2017"
+
+## Emoji
+
+::: moniker-end
+
+::: moniker range=">= tfs-2018"
+In pull request comments and wiki pages, you can use emojis to add character and react to comments in the request. Enter what you're feeling surrounded by `:` characters to get a matching emoji in your text. The [full set of emojis](http://www.webpagefx.com/tools/emoji-cheat-sheet/) are supported.
+
+::: moniker-end
+
+::: moniker range="tfs-2017"
+In pull request comments, you can use emojis to add characters and react to comments in the request. Enter what you're feeling surrounded by `:` characters to get a matching emoji in your text. The [full set of emojis](http://www.webpagefx.com/tools/emoji-cheat-sheet/) are supported.
+
+::: moniker-end
+
+::: moniker range=">= tfs-2017"
+
+**Example:**
+
+<pre>
+:smile:
+:angry:
+</pre>
+<br/>
+
+**Result:**
+
+![Emojis in markdown](../../repos/git/_img/pull-requests/emoji-markdown.png)
+
+To escape emojis, enclose them using the \` character.
+
+**Example:**
+
+<pre>`:smile:` `:)` `:angry:`</pre>
+
+**Result:**
+
+ `:smile:` `:)` `:angry:`
+
+::: moniker-end
+
+## Ignore or escape markdown syntax to enter specific or literal characters
+
+<table width="650px">
+<tbody valign="top">
+<tr>
+<th width="300px">Syntax</th>
+<th width="350px">Example/notes</th>
+</tr>
+
+
+<tr>
+<td>
+<p>To insert one of the following characters, prefix with a backslash:</p>
+
+<p style="margin-bottom:2px;">```\   backslash ``` </p>
+<p style="margin-bottom:2px;"><code>\`</code>   `backtick`</p>
+<p style="margin-bottom:2px;">```_   underscore  ```</p>
+<p style="margin-bottom:2px;">```{}  curly braces  ``` </p>
+<p style="margin-bottom:2px;">```[]  square brackets ```</p>
+<p style="margin-bottom:2px;">```()  parentheses  ```</p>
+<p style="margin-bottom:2px;">```#   hash mark  ``` </p>
+<p style="margin-bottom:2px;">```+   plus sign  ```</p>
+<p style="margin-bottom:2px;">```-   minus sign (hyphen) ```</p>
+<p style="margin-bottom:2px;">```.   dot  ``` </p>
+<p style="margin-bottom:2px;">```!   exclamation mark  ```</p>
+
+</td>
+<td>Some examples on inserting special characters
+<p>Enter ```\\``` to get \\ </p>
+<p>Enter ```\_``` to get _ </p>
+<p>Enter ```\#``` to get \# </p>
+<p>Enter ```\(``` to get \( </p>
+<p>Enter ```\.``` to get \. </p>
+<p>Enter ```\!``` to get \! </p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+::: moniker range=">= tfs-2017"
+
+<a name="attach"></a>
+
+## Attachments
+
+::: moniker-end
+
+::: moniker range=">= tfs-2018"
+In pull request comments and wiki pages, you can attach files to illustrate your point or to give more detailed reasoning behind your suggestions. To attach a file, drag and drop it into the comment field or wiki page edit experience. You can also select the paper-clip icon in the upper-right of the comment box or the format pane in wiki page.
+::: moniker-end
+
+::: moniker range="tfs-2017"
+In pull request comments, you can attach files to illustrate your point or to give more detailed reasoning behind your suggestions. To attach a file, drag and drop it into the comment field. You can also select the paper-clip icon in the upper-right of the comment box.
+::: moniker-end
+
+::: moniker range="tfs-2017"
+> [!NOTE]
+> Attachments in pull requests is available with TFS 2017.1 and later versions.
+::: moniker-end
+
+::: moniker range=">= tfs-2017"
+
+<img src="_img/markdown-guidance/attach_files.png" alt="Web portal, Pull Request, Attach files via drag and drop i" style="border: 1px solid #C3C3C3;" />
+
+If you have an image in your clipboard, you can paste it from the clipboard into the comment box or wiki page and it will render directly into your comment or wiki page.
+
+Attaching non-image files creates a link to the file in your comment. Update the description text between the brackets to change the text displayed in the link.
+Attached image files render directly into your comment or wiki pages. Once you save or update a comment or wiki page with an attachment, you can see the attached image(s) and can select links to download attached files.
+
+Attachments support the following file formats.
+
+> [!div class="mx-tdCol2BreakAll"]
+> |          Type          | File formats |
+> |------|---------|
+> | Code | CS (.cs), Extensible Markup Language (.xml), JavaScript Object Notation (.json), Hypertext Markup Language(.html, .htm), Layer (.lyr), Windows PowerShell script (.ps1), Roshal Archive (.rar), Remote Desktop Connection (.rdp), Structured Query Language (.sql) - **Note: Code attachments are not permitted in PR comments**  |
+> | Compressed files | ZIP (.zip) and GZIP (.gz) |
+> | Documents | Markdown (.md), Microsoft Office Message (.msg), Microsoft Project (.mpp), Word (.doc and .docx), Excel (.xls, .xlsx and .csv), and Powerpoint (.ppt and .pptx), text files (.txt), and PDFs (.pdf) |
+> | Images | PNG (.png), GIF (.gif), JPEG (both .jpeg and .jpg), Icons (.ico) |
+> | Visio | VSD (.vsd and .vsdx)  |
+> | Video | MOV (.mov), MP4 (.mp4) |
+
+> [!NOTE]
+> Not all file formats are supported within pull requests, such as Microsoft Office Message (.msg) files.
+
+::: moniker-end
+
+::: moniker range=">= tfs-2018"
+<a name="html"></a>
+
+## HTML tag support in wiki pages
+
+In wiki pages, you can also create rich content using HTML tags.
+::: moniker-end
+::: moniker range="tfs-2018"
+> [!NOTE]
+> Pasting rich content as HTML is supported in TFS 2018.2 and later versions.
+::: moniker-end
+
+::: moniker range=">= tfs-2018"
+**Example - Embedded video**
+
+```HTML
+<video src="path of the video file" width=400 controls>
+</video>
+```
+
+**For example:**
+```HTML
+<video src="https://sec.ch9.ms/ch9/7247/7c8ddc1a-348b-4ba9-ab61-51fded6e7247/vstswiki_high.mp4" width=400 controls>
+</video>
+```
+
+</br>
+**Result:**
+</br>
+<video src="_img/markdown-guidance/vstswiki_mid.mp4" width="600" controls>
+</video>
+
+**Example - Rich text format**
+
+```HTML
+<p>This text needs to <del>strikethrough</del> <ins>since it is redundant</ins>!</p>
+<p><tt>This text is teletype text.</tt></p>
+<font color="blue">Colored text</font>
+<center>This text will be center-aligned.</center>
+<p>This text contains <sup>superscript</sup> text.</p>
+<p>This text contains <sub>subscript</sub> text.</p>
+<p>The project status is <span style="color:green;font-weight:bold">GREEN</span> even though the bug count / developer may be in <span style="color:red;font-weight:bold">red.</span> - Capability of span
+<p><small>Disclaimer: Wiki also supports showing small text</small></p>
+<p><big>Bigger text</big></p>
+```
+
+**Result:**
+<p>This text needs to <del>strikethrough</del> <ins>since it is redundant</ins>!</p>
+<p><tt>This text is teletype text.</tt></p>
+<font color="blue">Colored text</font>
+<center>This text will be center-aligned.</center>
+<p>This text contains <sup>superscript</sup> text.</p>
+<p>This text contains <sub>subscript</sub> text.</p>
+<p>The project status is <span style="color:green;font-weight:bold">GREEN</span> even though the bug count / developer may be in <span style="color:red;font-weight:bold">red.</span> - Capability of span
+<p><small>Disclaimer: Wiki also supports showing small text</small></p>
+<p><big>Bigger text</big></p>
+
+::: moniker-end
+
+::: moniker range=">=tfs-2018"
+
+<a id="mathematical-notation">  </a>
+
+## Mathematical notation and characters
+
+Both inline and block [KaTeX](https://khan.github.io/KaTeX/function-support.html) notation is supported in wiki pages and pull requests. This includes inserting symbols, Greek letters, mathematical operators, powers and indices, fractions and binomials, and other KaTeX supported elements.
+
+To include mathematical notation, surround the mathematical notation with a `$` sign, for inline, and `$$` for block,  as shown in the following examples:
+
+::: moniker-end
+
+::: moniker range="tfs-2018"
+> [!NOTE]
+> This feature is supported within Wiki pages and pull requests for TFS 2018.2 or later versions.
+::: moniker-end
+
+::: moniker range=">=tfs-2018"
+
+### Example: Greek characters
+
+```KaTeX
+$
+\alpha, \beta, \gamma, \delta, \epsilon, \zeta, \eta, \theta, \kappa, \lambda, \mu, \nu, \omicron, \pi, \rho, \sigma, \tau, \upsilon, \phi, ...
+$
+
+
+$\Gamma,  \Delta,  \Theta, \Lambda, \Xi, \Pi, \Sigma, \Upsilon, \Phi, \Psi, \Omega$
+```
+
+**Result:**
+> [!div class="mx-imgBorder"]
+![Greek letters](_img/markdown-guidance/mathematical-notation-greek-characters.png)
+
+### Example: Algebraic notation
+
+```KaTeX
+Area of a circle is $\pi r^2$
+
+And, the area of a triangle is:
+
+$$
+A_{triangle}=\frac{1}{2}({b}\cdot{h})
+$$
+
+```
+
+**Result:**
+> [!div class="mx-imgBorder"]
+![Algebraic notation](_img/markdown-guidance/mathematical-notation-algebra.png)
+
+### Example: Sums and Integrals
+
+```KaTeX
+$$
+\sum_{i=1}^{10} t_i
+$$
+
+
+$$
+\int_0^\infty \mathrm{e}^{-x}\,\mathrm{d}x
+$$
+```
+
+**Result:**
+> [!div class="mx-imgBorder"]
+![Greek letters](_img/markdown-guidance/mathematical-notation-sums-integrals.png)
+
+::: moniker-end
+
+::: moniker range=">= azdevserver-2019"
+<a id="toc-wiki" > </a>
+
+## Table of contents (TOC) for Wiki pages
+
+You can now just add a tag [[\_TOC\_]] to enable table of contents in your page. The TOC is generated when the tag is added to the page and there is at least one heading in the page.
+
+> [!div class="mx-imgBorder"]
+> ![Table of contents](_img/toc_sample.png)
+
+The [[\_TOC\_]] can be placed anywhere in the page to render the Table of Contents.
+Only Markdown headings are considered for TOC (HTML heading tags are not).
+
+All HTML and markdown tags are stripped from the headings while adding it inside the TOC block.
+For example: Adding bold and italics to a heading text will render the TOC as follows.
+
+> [!div class="mx-imgBorder"]
+> ![Tags for Toc](_img/toc_tags.png)
+
+This is to maintain consistency in the formatting in TOC.
+Note: The tag [[\_TOC\_]] is case sensitive i.e. [[\_toc\_]] may not render the TOC.
+
+::: moniker-end
+
+
+::: moniker range=">= azdevserver-2019"
+
+## Embed Videos in a Wiki page
+
+To embed videos from YouTube and Microsoft Streams in a wiki page, use the following syntax:
+
+```
+::: video
+<iframe width="100%" height="315" src="https://www.youtube.com/embed/OtqFyBA6Dbk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+:::
+```
+The iframe is the embed iframe block of the YouTube or Microsoft Streams video.
+
+**Result:**
+
+<iframe width="100%" height="315" src="https://www.baidu.com" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+(The ending ":::" is required to prevent break in page)
+
+::: moniker-end
+
+## Related articles
+
+- [Project vision page or Welcome pages](project-vision-status.md)
+- [README files](../../repos/git/create-a-readme.md)
+- [Pull requests](../../repos/git/pull-requests.md)
+- [Markdown widget](../../report/dashboards/add-markdown-to-dashboard.md)
+- [Dashboards](../../report/dashboards/dashboards.md)
+- [Widget catalog](../../report/dashboards/widget-catalog.md)
+- [Wiki](add-edit-wiki.md)
 
