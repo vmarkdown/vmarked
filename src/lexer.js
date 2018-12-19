@@ -1,6 +1,6 @@
 import block from './block';
 import defaults from './defaults';
-import { splitCells, rtrim } from './helper';
+import { splitCells, rtrim, escapeScript } from './helper';
 const marked = {defaults};
 
 /**
@@ -305,6 +305,9 @@ Lexer.prototype.token = function(src, top) {
 
 
 
+        // debugger
+
+
         // newline
         if (cap = this.rules.newline.exec(src)) {
             src = src.substring(cap[0].length);
@@ -501,6 +504,9 @@ Lexer.prototype.token = function(src, top) {
                     item = item.replace(/^\[[ xX]\] +/, '');
                 }
 
+                //escapeScript
+                item = escapeScript(item);
+
                 // var position = createListItemPosition.call(this, item);
                 t = {
                     // position: position,
@@ -565,15 +571,21 @@ Lexer.prototype.token = function(src, top) {
 
         // def
         if (top && (cap = this.rules.def.exec(src))) {
+
+
             src = src.substring(cap[0].length);
             if (cap[3]) cap[3] = cap[3].substring(1, cap[3].length - 1);
             tag = cap[1].toLowerCase().replace(/\s+/g, ' ');
             if (!this.tokens.links[tag]) {
+
                 this.tokens.links[tag] = {
                     href: cap[2],
                     title: cap[3]
                 };
             }
+
+            createPosition.call(this, cap[0]);
+
             continue;
         }
 

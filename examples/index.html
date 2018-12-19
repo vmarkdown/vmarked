@@ -45,12 +45,13 @@
             position: relative;
         }
 
-        p[data-line]{
-            background-color: rgba(0, 136, 22, 0.3) !important;
+        p[data-line], div[data-line]{
+            background-color: rgba(0, 0, 0, 0.14) !important;
             position: relative;
         }
 
         p[data-line]:after,
+        div[data-line]:after,
         h1[data-line]:after,h2[data-line]:after,h3[data-line]:after,h4[data-line]:after,h5[data-line]:after,h6[data-line]:after,
         pre[data-line]:after,
         table[data-line]:after,
@@ -58,17 +59,18 @@
         ul[data-line]:after{
             content: "("attr(data-line)")";
             position: absolute;
-            right: 0;
+            left: 0;
             top: 0;
             color: red;
             background-color: white;
-            /*transform: translateX(100%);*/
+            transform: translateX(-100%);
+            font-size: 14px;
         }
 
         li[data-line]:after{
             content: "("attr(data-line)")";
             position: absolute;
-            left: 0;
+            right: 0;
             top: 0;
             color: red;
             background-color: white;
@@ -87,11 +89,13 @@
         pre[data-line]{
             background-color: rgba(52, 86, 136, 0.3) !important;
             position: relative;
+            overflow: initial;
         }
 
         table[data-line]{
             background-color: rgba(136, 123, 4, 0.3) !important;
             position: relative;
+            overflow: initial;
         }
 
 

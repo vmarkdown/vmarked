@@ -1,4 +1,4 @@
-import { merge, unescape, isArray } from './helper';
+import { merge, unescape, escapeScript } from './helper';
 import defaults from './defaults';
 import Renderer from "./renderer";
 import InlineLexer from "./inline-lexer";
@@ -170,11 +170,14 @@ Parser.prototype.tok = function() {
                     : this.tok();
             }
 
+            // body = body.replace('<script>', '&lt;script&gt;');
+            // body = escape(body);
+
             return this.renderer.listitem(body, this.token.position);
         }
         case 'html': {
             // TODO parse inline content if parameter markdown=1
-            return this.renderer.html(this.token.text);
+            return this.renderer.html(this.token.text, this.token.position);
         }
         case 'paragraph': {
             return this.renderer.paragraph(this.inline.output(this.token.text)

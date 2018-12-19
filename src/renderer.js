@@ -45,8 +45,10 @@ Renderer.prototype.blockquote = function(quote) {
     return '<blockquote>\n' + quote + '</blockquote>\n';
 };
 
-Renderer.prototype.html = function(html) {
-    return html;
+Renderer.prototype.html = function(html, position) {
+    // return html;
+    var attrs = createPostionAttrs(position);
+    return '<div '+attrs+'>'+html+'</div>';
 };
 
 Renderer.prototype.heading = function(text, level, raw, position) {

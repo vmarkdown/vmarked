@@ -3,6 +3,13 @@
  * Helpers
  */
 
+export function escapeScript(html) {
+    return html
+        .replace(/<script/g, '&lt;script')
+        .replace(/script\s*>/g, 'script&gt;')
+        .replace(/<\/script/g, '&lt;/script');
+}
+
 export function escape(html, encode) {
     return html
         .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
