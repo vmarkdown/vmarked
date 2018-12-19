@@ -181,7 +181,7 @@ Parser.prototype.tok = function() {
                 ,this.token.position);
         }
         case 'text': {
-            return this.renderer.paragraph(this.parseText());
+            return this.renderer.paragraph(this.parseText(), this.token.position);
         }
     }
 };

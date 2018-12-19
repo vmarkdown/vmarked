@@ -32,14 +32,67 @@
             /*background-color: #ff020226!important;*/
         /*}*/
 
-        [data-line]:nth-of-type(odd){
-            background-color: rgba(0, 136, 22, 0.33) !important;
+        /*[data-line]:nth-of-type(odd){*/
+            /*background-color: rgba(0, 136, 22, 0.33) !important;*/
+        /*}*/
+
+        /*[data-line]:nth-of-type(even){*/
+            /*background-color: rgba(255, 0, 0, 0.33) !important;*/
+        /*}*/
+
+        h1[data-line],h2[data-line],h3[data-line],h4[data-line],h5[data-line],h6[data-line]{
+            background-color: rgba(136, 0, 107, 0.27) !important;
+            position: relative;
         }
 
-        [data-line]:nth-of-type(even){
-            background-color: rgba(255, 0, 0, 0.33) !important;
+        p[data-line]{
+            background-color: rgba(0, 136, 22, 0.3) !important;
+            position: relative;
         }
 
+        p[data-line]:after,
+        h1[data-line]:after,h2[data-line]:after,h3[data-line]:after,h4[data-line]:after,h5[data-line]:after,h6[data-line]:after,
+        pre[data-line]:after,
+        table[data-line]:after,
+        ol[data-line]:after,
+        ul[data-line]:after{
+            content: "("attr(data-line)")";
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: red;
+            background-color: white;
+            /*transform: translateX(100%);*/
+        }
+
+        li[data-line]:after{
+            content: "("attr(data-line)")";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: red;
+            background-color: white;
+        }
+
+        ol[data-line],ul[data-line]{
+            background-color: rgba(255, 0, 0, 0.3) !important;
+            position: relative;
+        }
+
+        li[data-line]{
+            background-color: rgba(136, 0, 104, 0.18) !important;
+            position: relative;
+        }
+
+        pre[data-line]{
+            background-color: rgba(52, 86, 136, 0.3) !important;
+            position: relative;
+        }
+
+        table[data-line]{
+            background-color: rgba(136, 123, 4, 0.3) !important;
+            position: relative;
+        }
 
 
     </style>
